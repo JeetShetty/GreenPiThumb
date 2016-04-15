@@ -1,0 +1,1 @@
+coverage run --source greenpithumb -m unittest discover
