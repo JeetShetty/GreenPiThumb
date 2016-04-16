@@ -33,4 +33,5 @@ class PumpManager(object):
         """
         # TODO(JeetShetty): Add logic here so that it only runs the pump when
         # the soil moisture is too low.
-        self._pump.pump_water(DEFAULT_PUMP_AMOUNT)
+        if self._moisture_sensor.moisture() < SOIL_MOISTURE_THRESHOLD:
+            self._pump.pump_water(DEFAULT_PUMP_AMOUNT)
