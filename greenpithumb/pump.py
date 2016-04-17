@@ -25,4 +25,16 @@ class Pump(object):
             amount_ml: Amount of water to pump (in mL).
         """
         # TODO(JeetShetty): Implement this.
-        raise NotImplementedError()
+        if amount_ml == 0.0:
+            return
+        elif amount_ml < 0.0:
+            raise ValueError('Cannot pump a negative amount of water')
+        else:
+            self._adc.write_pin(0, 1023)
+        
+            wait_time_seconds = amount_ml/_PUMP_RATE_ML_PER_SEC
+            self._clock.wait(wait_time_seconds)
+
+            self._adc.write_pin(0, 0)
+
+        return
