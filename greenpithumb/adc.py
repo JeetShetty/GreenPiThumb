@@ -5,6 +5,7 @@
 # ADC pin to which water pump is connected
 PIN_PUMP = 0
 PIN_LIGHT_SENSOR = 1
+PIN_MOISTURE_SENSOR = 2
 
 # Signal to turn an ADC pin off.
 SIGNAL_OFF = 0
