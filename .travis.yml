@@ -3,7 +3,7 @@ language: python
 python:
   - "2.7"
 install:
-    - pip install -r test_requirements.txt
+    - pip install -r dev_requirements.txt
     - pip install coveralls
 script:
     ./build

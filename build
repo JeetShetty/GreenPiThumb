@@ -1,1 +1,4 @@
-coverage run --source greenpithumb -m unittest discover
+# Run unit tests and calculate code coverage.
+coverage run --source greenpithumb -m unittest discover &&
+# Check that source has correct formatting.
+yapf --diff --recursive --style google ./

@@ -1,4 +1,3 @@
-
 # TODO(mtlynch): Move these pin constants to a configuration file so they're not
 # hardcoded in.
 

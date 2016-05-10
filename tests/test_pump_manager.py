@@ -11,9 +11,8 @@ class PumpManagerTest(unittest.TestCase):
     def setUp(self):
         self.mock_moisture_sensor = mock.Mock()
         self.mock_pump = mock.Mock()
-        self.manager = pump_manager.PumpManager(
-            self.mock_moisture_sensor,
-            self.mock_pump)
+        self.manager = pump_manager.PumpManager(self.mock_moisture_sensor,
+                                                self.mock_pump)
 
     def test_low_moisture_triggers_pump(self):
         self.mock_moisture_sensor.moisture.return_value = (
