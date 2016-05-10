@@ -1,2 +1,3 @@
+coverage
 mock
 yapf==0.7.1
