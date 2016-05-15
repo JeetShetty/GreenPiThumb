@@ -27,3 +27,7 @@ class ClockTest(unittest.TestCase):
         """Waiting a negative time is invalid and should raise an exception."""
         with self.assertRaises(ValueError):
             self.clock.wait(-1.0)
+
+    def test_now_is_timezone_aware(self):
+        """now() should always return a tz-aware datetime."""
+        self.assertIsNotNone(self.clock.now().tzinfo)

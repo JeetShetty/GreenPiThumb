@@ -1,4 +1,7 @@
+import datetime
 import time
+
+import pytz
 
 
 class Clock(object):
@@ -10,3 +13,6 @@ class Clock(object):
             raise ValueError('Wait time cannot be negative: %f' %
                              wait_time_seconds)
         time.sleep(wait_time_seconds)
+
+    def now(self):
+        return datetime.datetime.now(tz=pytz.utc)
