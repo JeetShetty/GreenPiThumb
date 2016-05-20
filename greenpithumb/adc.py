@@ -5,6 +5,7 @@
 PIN_PUMP = 0
 PIN_LIGHT_SENSOR = 1
 PIN_MOISTURE_SENSOR = 2
+PIN_HUMIDITY_SENSOR = 3
 
 # Signal to turn an ADC pin off.
 SIGNAL_OFF = 0

@@ -1,4 +1,7 @@
 # Run unit tests and calculate code coverage.
-coverage run --source greenpithumb -m unittest discover &&
+coverage run \
+  --source greenpithumb \
+  --omit "greenpithumb/dht11/*" \
+  -m unittest discover &&
 # Check that source has correct formatting.
-yapf --diff --recursive --style google ./
+yapf --diff --recursive --style google ./ --exclude="./greenpithumb/dht11/*"

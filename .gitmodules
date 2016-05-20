@@ -1,0 +1,3 @@
+[submodule "greenpithumb/dht11"]
+	path = greenpithumb/dht11
+	url = https://github.com/szazo/DHT11_Python.git
