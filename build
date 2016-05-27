@@ -1,7 +1,28 @@
+#!/bin/bash
+#
+# Build script to validate greenpithumb
+
+# Exit build script on first failure
+set -e
+
 # Run unit tests and calculate code coverage.
 coverage run \
   --source greenpithumb \
   --omit "greenpithumb/dht11/*,greenpithumb/fake_sensors.py" \
-  -m unittest discover &&
+  -m unittest discover
+
 # Check that source has correct formatting.
-yapf --diff --recursive --style google ./ --exclude="./greenpithumb/dht11/*"
+yapf \
+  --diff \
+  --recursive \
+  --style google \
+  ./ \
+  --exclude "./greenpithumb/dht11/*" \
+  --exclude "./third_party/*"
+
+# Run static analysis for Python bugs/cruft.
+pyflakes greenpithumb/*.py tests/*.py
+
+# Check that docstrings are formatted correctly.
+PYTHONPATH=$PYTHONPATH:$(pwd)/third_party/docstringchecker \
+  pylint --reports=n greenpithumb tests

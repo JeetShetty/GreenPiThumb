@@ -29,7 +29,6 @@ class PumpManager(object):
         Checks whether it's time to run the pump and runs it if needed.
         Running the pump is necessary if the soil's moisture is below the
         defined moisture threshold.
-
         """
         # TODO(JeetShetty): Add logic here so that it only runs the pump when
         # the soil moisture is too low.

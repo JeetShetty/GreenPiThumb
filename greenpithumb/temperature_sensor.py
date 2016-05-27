@@ -8,7 +8,7 @@ class TemperatureSensor(object):
         """Creates a new TemperatureSensor wrapper.
 
         Args:
-            dht11: Instance of DHT11 sensor reader class. 
+            dht11: Instance of DHT11 sensor reader class.
         """
         self._dht11 = dht11
 
@@ -17,7 +17,7 @@ class TemperatureSensor(object):
         dht11_result = self._dht11.read()
         error_code = dht11_result.error_code
 
-        # TODO(JeetShetty): Replace error codes with constants from dht11 
+        # TODO(JeetShetty): Replace error codes with constants from dht11
         # module
         if error_code != 0:
             if error_code == 1:

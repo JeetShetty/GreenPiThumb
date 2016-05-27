@@ -1,5 +1,3 @@
-import adc
-
 # Pump rate in mL/s (4.3 L/min)
 _PUMP_RATE_ML_PER_SEC = 4300.0 / 60.0
 
