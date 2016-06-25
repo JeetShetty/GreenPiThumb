@@ -2,6 +2,7 @@ import datetime
 import time
 
 import pytz
+import tzlocal
 
 
 class Clock(object):
@@ -16,3 +17,11 @@ class Clock(object):
 
     def now(self):
         return datetime.datetime.now(tz=pytz.utc)
+
+
+class LocalClock(Clock):
+    """An implementation of Clock that operates in the local time zone."""
+
+    def now(self):
+        time_utc = super(LocalClock, self).now()
+        return time_utc.astimezone(tzlocal.get_localzone())
