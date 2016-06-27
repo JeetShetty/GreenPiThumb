@@ -18,7 +18,7 @@ class ReservoirTest(unittest.TestCase):
         self.assertAlmostEqual(5.0, res.reservoir_level())
 
     def test_water_level_out_of_range(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(reservoir.ReservoirUnderWeightError):
             container_weight = 50.0
             res = reservoir.Reservoir(self.mock_weight_sensor, container_weight)
             self.mock_weight_sensor.weight.return_value = container_weight - 1

@@ -1,8 +1,5 @@
 import adc
 
-MIN_WEIGHT = 0.0
-_MAX_WEIGHT = 1023.0
-
 
 class WeightSensor(object):
     """Wrapper for a weight sensor."""
@@ -19,8 +16,6 @@ class WeightSensor(object):
     def weight(self):
         """Returns weight in grams."""
         weight = self._adc.read_pin(adc.PIN_WEIGHT_SENSOR)
-        if not MIN_WEIGHT <= weight <= _MAX_WEIGHT:
-            raise ValueError('reservoir weight out of range: %.1f' % weight)
 
         # TODO(JeetShetty): Implement the actual conversion from weight to
         # weight_grams

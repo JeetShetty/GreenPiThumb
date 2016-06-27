@@ -15,7 +15,7 @@ class LightSensorTest(unittest.TestCase):
 
     def test_light_50_pct(self):
         """Midpoint light sensor value should return 50.0."""
-        # Midpoint between LIGHT_SENSOR_MIN_VALUE and LIGHT_SENSOR_MAX_VALUE
+        # Midpoint between LIGHT_SENSOR_MIN_VALUE and PIN_MAX_VALUE
         self.mock_adc.read_pin.return_value = 656.5
 
         light_level = self.light_sensor.get_light_level()
@@ -26,11 +26,4 @@ class LightSensorTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.mock_adc.read_pin.return_value = (
                 light_sensor._LIGHT_SENSOR_MIN_VALUE - 1)
-            self.light_sensor.get_light_level()
-
-    def test_light_level_too_high(self):
-        """Light sensor value greater than max should raise a ValueError."""
-        with self.assertRaises(ValueError):
-            self.mock_adc.read_pin.return_value = (
-                light_sensor._LIGHT_SENSOR_MAX_VALUE + 1)
             self.light_sensor.get_light_level()

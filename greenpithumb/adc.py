@@ -1,7 +1,7 @@
 # TODO(mtlynch): Move these pin constants to a configuration file so they're not
 # hardcoded in.
 
-# ADC pin to which water pump is connected
+# ADC pin to which each component is connected
 PIN_PUMP = 0
 PIN_LIGHT_SENSOR = 1
 PIN_MOISTURE_SENSOR = 2
@@ -13,6 +13,9 @@ SIGNAL_OFF = 0
 
 # Signal to turn an ADC pin on.
 SIGNAL_ON = 1023
+
+PIN_MIN_VALUE = 0
+PIN_MAX_VALUE = 1023
 
 
 class Adc(object):

@@ -1,7 +1,7 @@
 import adc
 
-_LIGHT_SENSOR_MAX_VALUE = 1023.0
 _LIGHT_SENSOR_MIN_VALUE = 290.0
+_LIGHT_SENSOR_MAX_VALUE = adc.PIN_MAX_VALUE
 
 
 class LightSensor(object):
@@ -18,11 +18,9 @@ class LightSensor(object):
 
     def get_light_level(self):
         """Returns light level as percentage."""
-
         light_level = self._adc.read_pin(adc.PIN_LIGHT_SENSOR)
 
-        if light_level < _LIGHT_SENSOR_MIN_VALUE or \
-        light_level > _LIGHT_SENSOR_MAX_VALUE:
+        if light_level < _LIGHT_SENSOR_MIN_VALUE:
             raise ValueError('Light sensor reading out of range')
 
         light_level_as_pct = 100 * (

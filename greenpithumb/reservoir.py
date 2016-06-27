@@ -1,4 +1,9 @@
-import weight_sensor
+class Error(Exception):
+    pass
+
+
+class ReservoirUnderWeightError(Error):
+    pass
 
 
 class Reservoir(object):
@@ -17,9 +22,11 @@ class Reservoir(object):
     def reservoir_level(self):
         """Returns reservoir level in ml."""
         reservoir_weight_grams = self._weight_sensor.weight()
-        water_weight_grams = reservoir_weight_grams - self._container_weight
-        if water_weight_grams < weight_sensor.MIN_WEIGHT:
-            raise ValueError('Water level out of range: %.1f' %
-                             water_weight_grams)
+        if reservoir_weight_grams < self._container_weight:
+            raise ReservoirUnderWeightError(
+                ('Unexpected weight measured for reservoir (%.1f g), as it is '
+                 'less than the weight of an empty reservoir (%.1f g).') % (
+                     reservoir_weight_grams, self._container_weight))
 
+        water_weight_grams = reservoir_weight_grams - self._container_weight
         return water_weight_grams  #1 gr water ~ 1 ml water
