@@ -23,7 +23,7 @@ class LightSensorTest(unittest.TestCase):
 
     def test_light_level_too_low(self):
         """Light sensor value less than min should raise a ValueError."""
-        with self.assertRaises(ValueError):
+        with self.assertRaises(light_sensor.LightSensorLowError):
             self.mock_adc.read_pin.return_value = (
                 light_sensor._LIGHT_SENSOR_MIN_VALUE - 1)
             self.light_sensor.get_light_level()

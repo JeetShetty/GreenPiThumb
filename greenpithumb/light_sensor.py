@@ -4,6 +4,14 @@ _LIGHT_SENSOR_MIN_VALUE = 290.0
 _LIGHT_SENSOR_MAX_VALUE = adc.PIN_MAX_VALUE
 
 
+class Error(Exception):
+    pass
+
+
+class LightSensorLowError(Error):
+    pass
+
+
 class LightSensor(object):
     """Wrapper for light sensor."""
 
@@ -21,7 +29,10 @@ class LightSensor(object):
         light_level = self._adc.read_pin(adc.PIN_LIGHT_SENSOR)
 
         if light_level < _LIGHT_SENSOR_MIN_VALUE:
-            raise ValueError('Light sensor reading out of range')
+            raise LightSensorLowError(
+                ('Light sensor reading of %.1f is less than the minimum '
+                 'expected value of %.1f.') % (light_level,
+                                               _LIGHT_SENSOR_MIN_VALUE))
 
         light_level_as_pct = 100 * (
             (light_level - _LIGHT_SENSOR_MIN_VALUE) /
