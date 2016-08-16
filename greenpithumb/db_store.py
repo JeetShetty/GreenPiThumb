@@ -19,7 +19,7 @@ class SoilMoistureStore(DbStoreBase):
         Args:
             timestamp: A datetime object representing the time of the soil
                 moisture reading.
-            soil_moisture: A float of the soil moisture reading.
+            soil_moisture: An int of the soil moisture reading.
         """
         self._cursor.execute('INSERT INTO soil_moisture VALUES (?, ?)',
                              (timestamp, soil_moisture))

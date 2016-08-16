@@ -1,6 +1,6 @@
 import adc
 
-_LIGHT_SENSOR_MIN_VALUE = 290.0
+_LIGHT_SENSOR_MIN_VALUE = 290
 _LIGHT_SENSOR_MAX_VALUE = adc.PIN_MAX_VALUE
 
 
@@ -30,12 +30,12 @@ class LightSensor(object):
 
         if light_level < _LIGHT_SENSOR_MIN_VALUE:
             raise LightSensorLowError(
-                ('Light sensor reading of %.1f is less than the minimum '
-                 'expected value of %.1f.') % (light_level,
-                                               _LIGHT_SENSOR_MIN_VALUE))
+                ('Light sensor reading of %i is less than the minimum '
+                 'expected value of %i.') % (light_level,
+                                             _LIGHT_SENSOR_MIN_VALUE))
 
         light_level_as_pct = 100 * (
-            (light_level - _LIGHT_SENSOR_MIN_VALUE) /
+            float(light_level - _LIGHT_SENSOR_MIN_VALUE) /
             (_LIGHT_SENSOR_MAX_VALUE - _LIGHT_SENSOR_MIN_VALUE))
 
         return light_level_as_pct

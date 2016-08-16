@@ -12,7 +12,7 @@ class StoreClassesTest(unittest.TestCase):
     def test_store_soil_moisture(self):
         """Should insert timestamp and moisture level into database."""
         timestamp = datetime.datetime(2016, 7, 23, 10, 51, 9, 928000)
-        soil_moisture = 300.0
+        soil_moisture = 300
         mock_cursor = mock.Mock()
         store = db_store.SoilMoistureStore(mock_cursor)
         store.store_soil_moisture(timestamp, soil_moisture)
@@ -23,7 +23,7 @@ class StoreClassesTest(unittest.TestCase):
     def test_store_ambient_light(self):
         """Should insert timestamp and ambient light into database."""
         timestamp = datetime.datetime(2016, 7, 23, 10, 51, 9, 928000)
-        ambient_light = 500.0
+        ambient_light = 50.0
         mock_cursor = mock.Mock()
         store = db_store.AmbientLightStore(mock_cursor)
         store.store_ambient_light(timestamp, ambient_light)
@@ -34,7 +34,7 @@ class StoreClassesTest(unittest.TestCase):
     def test_store_humidity(self):
         """Should insert timestamp and humidity level into database."""
         timestamp = datetime.datetime(2016, 7, 23, 10, 51, 9, 928000)
-        humidity = 500.0
+        humidity = 50.0
         mock_cursor = mock.Mock()
         store = db_store.HumidityStore(mock_cursor)
         store.store_humidity(timestamp, humidity)

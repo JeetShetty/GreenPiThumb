@@ -1,35 +1,35 @@
 CREATE TABLE temperature
 (
-    timestamp TEXT
+    timestamp TEXT,
     temperature REAL    --ambient temperature (in degrees Celsius)
 );
 
 CREATE TABLE ambient_humidity
 (
-    timestamp TEXT
+    timestamp TEXT,
     humidity REAL
 );
 
 CREATE TABLE soil_moisture
 (
-    timestamp TEXT
-    soil_moisture REAL
+    timestamp TEXT,
+    soil_moisture INTEGER
 );
 
 CREATE TABLE ambient_light
 (
-    timestamp TEXT
+    timestamp TEXT,
     light REAL
 );
 
 CREATE TABLE reservoir_level
 (
-    timestamp TEXT
+    timestamp TEXT,
     level REAL  -- reservoir level (in mL)
 );
 
 CREATE TABLE watering_events
 (
-    timestamp TEXT
+    timestamp TEXT,
     water_pumped REAL   --amount of water pumped (in mL)
 );

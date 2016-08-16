@@ -15,6 +15,6 @@ class WeightSensorTest(unittest.TestCase):
 
     def test_weight_500(self):
         """Weight returned should be weight read."""
-        self.mock_adc.read_pin.return_value = 500.0
+        self.mock_adc.read_pin.return_value = 500
         weight = self.weight_sensor.weight()
-        self.assertEqual(weight, 500.0)
+        self.assertEqual(weight, 500)
