@@ -12,3 +12,40 @@ GreenPiThumb is a program that automatically waters a plant based on soil moistu
 - Soil moisture level
 - Reservoir level
 - Photographs of the plant
+
+## Installation
+
+### Standard Installation
+
+Run this on a Raspberry Pi device:
+
+```bash
+sudo apt-get update
+sudo apt-get install build-essential python-dev
+git clone https://github.com/adafruit/Adafruit_Python_DHT.git
+cd Adafruit_Python_DHT
+python setup.py install
+
+cd ..
+git clone https://github.com/JeetShetty/GreenPiThumb.git
+cd GreenPiThumb
+sudo pip install -r requirements.txt
+```
+
+### Dev Installation
+
+Run this on a system for development:
+
+```bash
+sudo apt-get update
+sudo apt-get install build-essential python-dev
+git clone https://github.com/adafruit/Adafruit_Python_DHT.git
+cd Adafruit_Python_DHT
+sudo python setup.py install --force-test
+
+cd ..
+git clone https://github.com/JeetShetty/GreenPiThumb.git
+cd GreenPiThumb
+sudo pip install -r requirements.txt
+sudo pip install -r dev_requirements.txt
+```
