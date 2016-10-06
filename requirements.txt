@@ -1,4 +1,3 @@
 pytz
 tzlocal
-RPi.GPIO
 
