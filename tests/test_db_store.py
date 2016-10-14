@@ -20,18 +20,18 @@ class StoreClassesTest(unittest.TestCase):
             "INSERT INTO soil_moisture VALUES (?, ?)", (timestamp,
                                                         soil_moisture))
 
-    def test_get_latest_soil_moisture(self):
+    def test_latest_soil_moisture(self):
         mock_cursor = mock.Mock()
         store = db_store.SoilMoistureStore(mock_cursor)
         mock_cursor.fetchall.return_value = [(300,)]
-        moisture = store.get_latest_soil_moisture()
+        moisture = store.latest_soil_moisture()
         self.assertEqual(300, moisture)
 
-    def test_get_latest_soil_moisture_empty_database(self):
+    def test_latest_soil_moisture_empty_database(self):
         mock_cursor = mock.Mock()
         store = db_store.SoilMoistureStore(mock_cursor)
         mock_cursor.fetchall.return_value = []
-        moisture = store.get_latest_soil_moisture()
+        moisture = store.latest_soil_moisture()
         self.assertIsNone(moisture)
 
     def test_store_ambient_light(self):

@@ -27,7 +27,7 @@ class PollerClassesTest(unittest.TestCase):
         self.mock_local_clock.now.return_value = TIMESTAMP_A
         self.mock_local_clock.wait.side_effect = (
             lambda _: self.clock_wait_event.set())
-        self.mock_sensor.get_temperature.return_value = 21.0
+        self.mock_sensor.temperature.return_value = 21.0
 
         temperature_poller.start_polling_async()
         self.clock_wait_event.wait(TEST_TIMEOUT_SECONDS)
@@ -41,7 +41,7 @@ class PollerClassesTest(unittest.TestCase):
         self.mock_local_clock.now.return_value = TIMESTAMP_A
         self.mock_local_clock.wait.side_effect = (
             lambda _: self.clock_wait_event.set())
-        self.mock_sensor.get_humidity_level.return_value = 50.0
+        self.mock_sensor.humidity.return_value = 50.0
 
         humidity_poller.start_polling_async()
         self.clock_wait_event.wait(TEST_TIMEOUT_SECONDS)
@@ -69,7 +69,7 @@ class PollerClassesTest(unittest.TestCase):
         self.mock_local_clock.now.return_value = TIMESTAMP_A
         self.mock_local_clock.wait.side_effect = (
             lambda _: self.clock_wait_event.set())
-        self.mock_sensor.get_light_level.return_value = 50.0
+        self.mock_sensor.ambient_light.return_value = 50.0
 
         ambient_light_poller.start_polling_async()
         self.clock_wait_event.wait(TEST_TIMEOUT_SECONDS)
@@ -110,8 +110,7 @@ class WateringEventPollerTest(unittest.TestCase):
         self.mock_local_clock.wait.side_effect = (
             lambda _: self.clock_wait_event.set())
         self.mock_pump_manager.pump_if_needed.return_value = 200
-        self.mock_soil_moisture_store.get_latest_soil_moisture.return_value = (
-            100)
+        self.mock_soil_moisture_store.latest_soil_moisture.return_value = 100
 
         watering_event_poller.start_polling_async()
         self.clock_wait_event.wait(TEST_TIMEOUT_SECONDS)
@@ -127,8 +126,7 @@ class WateringEventPollerTest(unittest.TestCase):
         self.mock_local_clock.wait.side_effect = (
             lambda _: self.clock_wait_event.set())
         self.mock_pump_manager.pump_if_needed.return_value = 0
-        self.mock_soil_moisture_store.get_latest_soil_moisture.return_value = (
-            500)
+        self.mock_soil_moisture_store.latest_soil_moisture.return_value = 500
 
         watering_event_poller.start_polling_async()
         self.clock_wait_event.wait(TEST_TIMEOUT_SECONDS)
@@ -143,8 +141,7 @@ class WateringEventPollerTest(unittest.TestCase):
             self.mock_watering_event_store, self.mock_soil_moisture_store)
         self.mock_local_clock.wait.side_effect = (
             lambda _: self.clock_wait_event.set())
-        self.mock_soil_moisture_store.get_latest_soil_moisture.return_value = (
-            None)
+        self.mock_soil_moisture_store.latest_soil_moisture.return_value = None
 
         watering_event_poller.start_polling_async()
         self.clock_wait_event.wait(TEST_TIMEOUT_SECONDS)

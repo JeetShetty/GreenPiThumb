@@ -10,6 +10,6 @@ class HumiditySensor(object):
         """
         self._dht11 = dht11
 
-    def get_humidity_level(self):
+    def humidity(self):
         """Returns relative humidity level."""
         return self._dht11.humidity()

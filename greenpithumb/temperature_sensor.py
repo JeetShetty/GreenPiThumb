@@ -9,6 +9,6 @@ class TemperatureSensor(object):
         """
         self._dht11 = dht11
 
-    def get_temperature(self):
+    def temperature(self):
         """Returns ambient temperature in Celcius."""
         return self._dht11.temperature()

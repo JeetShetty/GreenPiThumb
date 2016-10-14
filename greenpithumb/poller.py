@@ -48,7 +48,7 @@ class TemperaturePoller(SensorPollerBase):
 
     def _poll_once(self):
         """Polls for and stores current ambient temperature."""
-        temperature = self._temperature_sensor.get_temperature()
+        temperature = self._temperature_sensor.temperature()
         self._temperature_store.store_temperature(self._local_clock.now(),
                                                   temperature)
 
@@ -73,7 +73,7 @@ class HumidityPoller(SensorPollerBase):
 
     def _poll_once(self):
         """Polls for and stores current relative humidity."""
-        humidity = self._humidity_sensor.get_humidity_level()
+        humidity = self._humidity_sensor.humidity()
         self._humidity_store.store_humidity(self._local_clock.now(), humidity)
 
 
@@ -97,9 +97,9 @@ class MoisturePoller(SensorPollerBase):
 
     def _poll_once(self):
         """Polls current soil moisture."""
-        moisture = self._moisture_sensor.moisture()
+        soil_moisture = self._moisture_sensor.moisture()
         self._soil_moisture_store.store_soil_moisture(self._local_clock.now(),
-                                                      moisture)
+                                                      soil_moisture)
 
 
 class AmbientLightPoller(SensorPollerBase):
@@ -122,7 +122,7 @@ class AmbientLightPoller(SensorPollerBase):
         self._ambient_light_store = ambient_light_store
 
     def _poll_once(self):
-        ambient_light = self._light_sensor.get_light_level()
+        ambient_light = self._light_sensor.ambient_light()
         self._ambient_light_store.store_ambient_light(self._local_clock.now(),
                                                       ambient_light)
 
@@ -184,9 +184,9 @@ class WateringEventPoller(SensorPollerBase):
         Polls for latest soil moisture readings and feeds them to a water pump.
         If the pump runs, it stores the event data.
         """
-        moisture = self._soil_moisture_store.get_latest_soil_moisture()
-        if moisture is not None:
-            ml_pumped = self._pump_manager.pump_if_needed(moisture)
+        soil_moisture = self._soil_moisture_store.latest_soil_moisture()
+        if soil_moisture is not None:
+            ml_pumped = self._pump_manager.pump_if_needed(soil_moisture)
             if ml_pumped > 0:
                 self._watering_event_store.store_water_pumped(
                     self._local_clock.now(), ml_pumped)

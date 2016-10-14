@@ -24,7 +24,7 @@ class SoilMoistureStore(DbStoreBase):
         self._cursor.execute('INSERT INTO soil_moisture VALUES (?, ?)',
                              (timestamp, soil_moisture))
 
-    def get_latest_soil_moisture(self):
+    def latest_soil_moisture(self):
         """Returns the most recent soil moisture reading."""
         query = '''SELECT soil_moisture FROM soil_moisture
                 ORDER BY timestamp DESC
