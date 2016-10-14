@@ -6,10 +6,14 @@ import tzlocal
 
 
 class Clock(object):
-    """An wrapper for managing clock time functions."""
+    """A wrapper for managing clock time functions."""
 
     def wait(self, wait_time_seconds):
-        """Wait for the specified number of milliseconds."""
+        """Wait for the specified number of seconds.
+
+        Args:
+            wait_time_seconds: Number of seconds to wait.
+        """
         if wait_time_seconds < 0.0:
             raise ValueError('Wait time cannot be negative: %f' %
                              wait_time_seconds)

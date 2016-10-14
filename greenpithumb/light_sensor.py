@@ -25,7 +25,12 @@ class LightSensor(object):
         self._adc = adc
 
     def ambient_light(self):
-        """Returns light level as percentage."""
+        """Returns light level as percentage.
+
+        Raises:
+            LightSensorLowError: Ambient light level is lower than the minimum
+                expected value.
+        """
         ambient_light = self._adc.read_pin(adc.PIN_LIGHT_SENSOR)
 
         if ambient_light < _LIGHT_SENSOR_MIN_VALUE:

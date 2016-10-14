@@ -23,8 +23,10 @@ class Pump(object):
 
         Args:
             amount_ml: Amount of water to pump (in mL).
-        """
 
+        Raises:
+            ValueError: The amount of water to be pumped is invalid.
+        """
         if amount_ml == 0.0:
             return
         elif amount_ml < 0.0:

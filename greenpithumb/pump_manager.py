@@ -27,11 +27,13 @@ class PumpManager(object):
 
         Checks whether it's time to run the pump and runs it if needed and
         allowed. Running the pump is necessary if the soil's moisture is below
-        the defined moisture threshold. Returns a float of the amount of water
-        pumped, in ml.
+        the defined moisture threshold.
 
         Args:
             moisture: Soil moisture level
+
+        Returns:
+            The amount of water pumped, in mL.
         """
         if self._pump_scheduler.is_running_pump_allowed():
             if moisture < SOIL_MOISTURE_THRESHOLD:

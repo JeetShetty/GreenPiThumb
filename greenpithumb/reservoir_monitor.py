@@ -1,5 +1,5 @@
 class ReservoirMonitor(object):
-    """Monitors and returns alerts about a GreenPiThumb system's reservoir"""
+    """Monitors and returns alerts about a reservoir."""
 
     def __init__(self, reservoir):
         """Creates a new ReservoirMonitor instance.

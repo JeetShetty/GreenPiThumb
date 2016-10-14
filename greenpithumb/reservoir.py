@@ -7,7 +7,7 @@ class ReservoirUnderWeightError(Error):
 
 
 class Reservoir(object):
-    """Provides information about a GreenPiThumb system's water reservoir."""
+    """Provides information about a water reservoir."""
 
     def __init__(self, weight_sensor, container_weight):
         """Creates a new Reservoir instance.
@@ -20,7 +20,12 @@ class Reservoir(object):
         self._container_weight = container_weight
 
     def reservoir_level(self):
-        """Returns reservoir level in ml."""
+        """Returns reservoir level in ml.
+
+        Raises:
+            ReservoirUnderWeightError: Reservoir weight is less than that of
+                the empty container.
+        """
         reservoir_weight_grams = self._weight_sensor.weight()
         if reservoir_weight_grams < self._container_weight:
             raise ReservoirUnderWeightError(
