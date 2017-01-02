@@ -1,5 +1,3 @@
-import adc
-
 # Pump rate in mL/s (4.3 L/min)
 _PUMP_RATE_ML_PER_SEC = 4300.0 / 60.0
 
@@ -7,16 +5,17 @@ _PUMP_RATE_ML_PER_SEC = 4300.0 / 60.0
 class Pump(object):
     """Wrapper for a Seaflo 12V water pump."""
 
-    def __init__(self, adc, clock):
+    def __init__(self, pi_io, clock, pump_pin):
         """Creates a new Pump wrapper.
 
         Args:
-            adc: ADC (analog to digital) interface to send digital signals to
-                pump.
+            pi_io: Raspberry Pi I/O interface.
             clock: A clock interface.
+            pump_pin: Raspberry Pi pin to which the pump is connected.
         """
-        self._adc = adc
+        self._pi_io = pi_io
         self._clock = clock
+        self._pump_pin = pump_pin
 
     def pump_water(self, amount_ml):
         """Pumps the specified amount of water.
@@ -32,11 +31,11 @@ class Pump(object):
         elif amount_ml < 0.0:
             raise ValueError('Cannot pump a negative amount of water')
         else:
-            self._adc.write_pin(adc.PIN_PUMP, adc.SIGNAL_ON)
+            self._pi_io.turn_pin_on(self._pump_pin)
 
             wait_time_seconds = amount_ml / _PUMP_RATE_ML_PER_SEC
             self._clock.wait(wait_time_seconds)
 
-            self._adc.write_pin(adc.PIN_PUMP, adc.SIGNAL_OFF)
+            self._pi_io.turn_pin_off(self._pump_pin)
 
         return

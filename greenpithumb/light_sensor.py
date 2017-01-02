@@ -1,7 +1,5 @@
-import adc
-
 _LIGHT_SENSOR_MIN_VALUE = 290
-_LIGHT_SENSOR_MAX_VALUE = adc.PIN_MAX_VALUE
+_LIGHT_SENSOR_MAX_VALUE = 1023
 
 
 class Error(Exception):
@@ -15,14 +13,16 @@ class LightSensorLowError(Error):
 class LightSensor(object):
     """Wrapper for light sensor."""
 
-    def __init__(self, adc):
+    def __init__(self, adc, channel):
         """Creates a new LightSensor wrapper.
 
         Args:
             adc: ADC(analog to digital) interface to receive
                 analog signals from light sensor.
+            channel: ADC channel to which the light sensor is connected.
         """
         self._adc = adc
+        self._channel = channel
 
     def ambient_light(self):
         """Returns light level as percentage.
@@ -31,7 +31,7 @@ class LightSensor(object):
             LightSensorLowError: Ambient light level is lower than the minimum
                 expected value.
         """
-        ambient_light = self._adc.read_pin(adc.PIN_LIGHT_SENSOR)
+        ambient_light = self._adc.read_adc(self._channel)
 
         if ambient_light < _LIGHT_SENSOR_MIN_VALUE:
             raise LightSensorLowError(
