@@ -30,6 +30,7 @@ cd ..
 git clone https://github.com/JeetShetty/GreenPiThumb.git
 cd GreenPiThumb
 sudo pip install -r requirements.txt
+cp greenpithumb/wiring_config.ini.example greenpithumb/wiring_config.ini
 ```
 
 ### Dev Installation
@@ -48,4 +49,5 @@ git clone https://github.com/JeetShetty/GreenPiThumb.git
 cd GreenPiThumb
 sudo pip install -r requirements.txt
 sudo pip install -r dev_requirements.txt
+cp greenpithumb/wiring_config.ini.example greenpithumb/wiring_config.ini
 ```

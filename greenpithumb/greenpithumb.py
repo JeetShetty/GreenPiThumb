@@ -6,12 +6,14 @@ import humidity_sensor
 import light_sensor
 import moisture_sensor
 import temperature_sensor
+import wiring_config_parser
 
 
 class SensorHarness(object):
     """Simple container for GreenPiThumbs that polls their values and prints."""
 
-    def __init__(self):
+    def __init__(self, wiring_config):
+        # TODO(mtlynch): Hook wiring_config up to components that depend on it.
         self._adc = fake_sensors.FakeAdc(light_start=500.0,
                                          moisture_start=600.0)
         self._light_sensor = light_sensor.LightSensor(self._adc)
@@ -38,8 +40,13 @@ class SensorHarness(object):
                                       temperature_reading, humidity_reading)
 
 
+def read_wiring_config(config_filename):
+    with open(config_filename) as config_file:
+        return wiring_config_parser.parse(config_file.read())
+
+
 def main(args):
-    sensor_harness = SensorHarness()
+    sensor_harness = SensorHarness(read_wiring_config(args.config_file))
     sensor_harness.print_readings_header()
     while True:
         sensor_harness.print_readings()
@@ -55,4 +62,8 @@ if __name__ == '__main__':
                         type=float,
                         help='Number of seconds between each sensor poll',
                         default=0.5)
+    parser.add_argument('-c',
+                        '--config_file',
+                        help='Wiring config file',
+                        default='wiring_config.ini')
     main(parser.parse_args())

@@ -67,3 +67,6 @@ target/
 
 # rope files
 .ropeproject/*
+
+# GreenPiThumb wiring configuration file
+wiring_config.ini
