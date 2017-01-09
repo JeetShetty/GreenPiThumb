@@ -35,6 +35,7 @@ class FakeDht11(object):
         self._temperature += random.randint(-5, 5)
         self._humidity += random.randint(-5, 5)
 
-        return dht11.DHT11Result(error_code=dht11.DHT11Result.ERR_NO_ERROR,
-                                 temperature=self._temperature,
-                                 humidity=self._humidity)
+        return dht11.DHT11Result(
+            error_code=dht11.DHT11Result.ERR_NO_ERROR,
+            temperature=self._temperature,
+            humidity=self._humidity)

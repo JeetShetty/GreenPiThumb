@@ -54,16 +54,12 @@ class StoreClassesTest(unittest.TestCase):
         self.assertEqual(
             soil_moisture_data[0].timestamp,
             datetime.datetime(
-                2016, 7, 23, 10,
-                51, 9, 928000,
-                tzinfo=UTC_MINUS_5))
+                2016, 7, 23, 10, 51, 9, 928000, tzinfo=UTC_MINUS_5))
         self.assertEqual(soil_moisture_data[0].soil_moisture, 300)
         self.assertEqual(
             soil_moisture_data[1].timestamp,
             datetime.datetime(
-                2016, 7, 23, 10,
-                52, 9, 928000,
-                tzinfo=UTC_MINUS_5))
+                2016, 7, 23, 10, 52, 9, 928000, tzinfo=UTC_MINUS_5))
         self.assertEqual(soil_moisture_data[1].soil_moisture, 400)
 
     def test_retrieve_soil_moisture_empty_database(self):
@@ -100,16 +96,12 @@ class StoreClassesTest(unittest.TestCase):
         self.assertEqual(
             ambient_light_data[0].timestamp,
             datetime.datetime(
-                2016, 7, 23, 10,
-                51, 9, 928000,
-                tzinfo=UTC_MINUS_5))
+                2016, 7, 23, 10, 51, 9, 928000, tzinfo=UTC_MINUS_5))
         self.assertEqual(ambient_light_data[0].ambient_light, 300)
         self.assertEqual(
             ambient_light_data[1].timestamp,
             datetime.datetime(
-                2016, 7, 23, 10,
-                52, 9, 928000,
-                tzinfo=UTC_MINUS_5))
+                2016, 7, 23, 10, 52, 9, 928000, tzinfo=UTC_MINUS_5))
         self.assertEqual(ambient_light_data[1].ambient_light, 400)
 
     def test_retrieve_ambient_light_empty_database(self):
@@ -145,16 +137,12 @@ class StoreClassesTest(unittest.TestCase):
         self.assertEqual(
             humidity_data[0].timestamp,
             datetime.datetime(
-                2016, 7, 23, 10,
-                51, 9, 928000,
-                tzinfo=UTC_MINUS_5))
+                2016, 7, 23, 10, 51, 9, 928000, tzinfo=UTC_MINUS_5))
         self.assertEqual(humidity_data[0].humidity, 50)
         self.assertEqual(
             humidity_data[1].timestamp,
             datetime.datetime(
-                2016, 7, 23, 10,
-                52, 9, 928000,
-                tzinfo=UTC_MINUS_5))
+                2016, 7, 23, 10, 52, 9, 928000, tzinfo=UTC_MINUS_5))
         self.assertEqual(humidity_data[1].humidity, 51)
 
     def test_retrieve_humidity_empty_database(self):
@@ -191,16 +179,12 @@ class StoreClassesTest(unittest.TestCase):
         self.assertEqual(
             reservoir_level_data[0].timestamp,
             datetime.datetime(
-                2016, 7, 23, 10,
-                51, 9, 928000,
-                tzinfo=UTC_MINUS_5))
+                2016, 7, 23, 10, 51, 9, 928000, tzinfo=UTC_MINUS_5))
         self.assertEqual(reservoir_level_data[0].reservoir_level, 1000)
         self.assertEqual(
             reservoir_level_data[1].timestamp,
             datetime.datetime(
-                2016, 7, 23, 10,
-                52, 9, 928000,
-                tzinfo=UTC_MINUS_5))
+                2016, 7, 23, 10, 52, 9, 928000, tzinfo=UTC_MINUS_5))
         self.assertEqual(reservoir_level_data[1].reservoir_level, 1200)
 
     def test_retrieve_reservoir_level_empty_database(self):
@@ -237,16 +221,12 @@ class StoreClassesTest(unittest.TestCase):
         self.assertEqual(
             temperature_data[0].timestamp,
             datetime.datetime(
-                2016, 7, 23, 10,
-                51, 9, 928000,
-                tzinfo=UTC_MINUS_5))
+                2016, 7, 23, 10, 51, 9, 928000, tzinfo=UTC_MINUS_5))
         self.assertEqual(temperature_data[0].temperature, 21.0)
         self.assertEqual(
             temperature_data[1].timestamp,
             datetime.datetime(
-                2016, 7, 23, 10,
-                52, 9, 928000,
-                tzinfo=UTC_MINUS_5))
+                2016, 7, 23, 10, 52, 9, 928000, tzinfo=UTC_MINUS_5))
         self.assertEqual(temperature_data[1].temperature, 21.5)
 
     def test_retrieve_temperature_empty_database(self):
@@ -283,16 +263,12 @@ class StoreClassesTest(unittest.TestCase):
         self.assertEqual(
             watering_event_data[0].timestamp,
             datetime.datetime(
-                2016, 7, 23, 10,
-                51, 9, 928000,
-                tzinfo=UTC_MINUS_5))
+                2016, 7, 23, 10, 51, 9, 928000, tzinfo=UTC_MINUS_5))
         self.assertEqual(watering_event_data[0].water_pumped, 300)
         self.assertEqual(
             watering_event_data[1].timestamp,
             datetime.datetime(
-                2016, 7, 23, 10,
-                52, 9, 928000,
-                tzinfo=UTC_MINUS_5))
+                2016, 7, 23, 10, 52, 9, 928000, tzinfo=UTC_MINUS_5))
         self.assertEqual(watering_event_data[1].water_pumped, 301)
 
     def test_retrieve_water_pumped_empty_database(self):
