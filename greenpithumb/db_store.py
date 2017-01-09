@@ -2,6 +2,18 @@ import collections
 from dateutil import parser
 
 
+def _serialize_timestamp(timestamp):
+    """Converts a timestamp to a string.
+
+    Args:
+        timestamp: Timestamp as a datetime object.
+
+    Returns:
+        Timestamp as a string in ISO 8601 format.
+    """
+    return timestamp.isoformat('T')
+
+
 class DbStoreBase(object):
     """Base class for storing information in a database."""
 
@@ -26,7 +38,7 @@ class SoilMoistureStore(DbStoreBase):
             soil_moisture: An int of the soil moisture reading.
         """
         self._cursor.execute('INSERT INTO soil_moisture VALUES (?, ?)',
-                             (timestamp, soil_moisture))
+                             (_serialize_timestamp(timestamp), soil_moisture))
 
     def latest_soil_moisture(self):
         """Returns the most recent soil moisture reading."""
@@ -69,7 +81,7 @@ class AmbientLightStore(DbStoreBase):
             ambient_light: A float of the ambient light level.
         """
         self._cursor.execute('INSERT INTO ambient_light VALUES (?, ?)',
-                             (timestamp, ambient_light))
+                             (_serialize_timestamp(timestamp), ambient_light))
 
     def retrieve_ambient_light(self):
         """Retrieves timestamp and ambient light readings.
@@ -99,7 +111,7 @@ class HumidityStore(DbStoreBase):
             humidity: A float of the humidity reading.
         """
         self._cursor.execute('INSERT INTO ambient_humidity VALUES (?, ?)',
-                             (timestamp, humidity))
+                             (_serialize_timestamp(timestamp), humidity))
 
     def retrieve_humidity(self):
         """Retrieves timestamp and relative humidity readings.
@@ -129,7 +141,7 @@ class ReservoirLevelStore(DbStoreBase):
             reservoir_level: A float of the reservoir level reading in mL.
         """
         self._cursor.execute('INSERT INTO reservoir_level VALUES (?, ?)',
-                             (timestamp, reservoir_level))
+                             (_serialize_timestamp(timestamp), reservoir_level))
 
     def retrieve_reservoir_level(self):
         """Retrieves timestamp and reservoir level readings.
@@ -159,7 +171,7 @@ class TemperatureStore(DbStoreBase):
             temperature: A float of the temperature reading in Celsius.
         """
         self._cursor.execute('INSERT INTO temperature VALUES (?, ?)',
-                             (timestamp, temperature))
+                             (_serialize_timestamp(timestamp), temperature))
 
     def retrieve_temperature(self):
         """Retrieves timestamp and temperature(C) readings.
@@ -188,7 +200,7 @@ class WateringEventStore(DbStoreBase):
             water_pumped: A float of the water volume pumped in mL.
         """
         self._cursor.execute('INSERT INTO watering_events VALUES (?, ?)',
-                             (timestamp, water_pumped))
+                             (_serialize_timestamp(timestamp), water_pumped))
 
     def retrieve_water_pumped(self):
         """Retrieves timestamp and volume of water pumped(in mL).

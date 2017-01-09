@@ -3,6 +3,7 @@ import datetime
 
 import mock
 from dateutil import tz
+import pytz
 
 from greenpithumb import db_store
 
@@ -14,14 +15,16 @@ class StoreClassesTest(unittest.TestCase):
 
     def test_store_soil_moisture(self):
         """Should insert timestamp and moisture level into database."""
-        timestamp = datetime.datetime(2016, 7, 23, 10, 51, 9, 928000)
+        timestamp = datetime.datetime(
+            2016, 7, 23, 10, 51, 9,
+            928000, tzinfo=pytz.utc)
         soil_moisture = 300
         mock_cursor = mock.Mock()
         store = db_store.SoilMoistureStore(mock_cursor)
         store.store_soil_moisture(timestamp, soil_moisture)
         mock_cursor.execute.assert_called_once_with(
-            "INSERT INTO soil_moisture VALUES (?, ?)", (timestamp,
-                                                        soil_moisture))
+            "INSERT INTO soil_moisture VALUES (?, ?)", (
+                '2016-07-23T10:51:09.928000+00:00', soil_moisture))
 
     def test_latest_soil_moisture(self):
         mock_cursor = mock.Mock()
@@ -72,14 +75,16 @@ class StoreClassesTest(unittest.TestCase):
 
     def test_store_ambient_light(self):
         """Should insert timestamp and ambient light into database."""
-        timestamp = datetime.datetime(2016, 7, 23, 10, 51, 9, 928000)
+        timestamp = datetime.datetime(
+            2016, 7, 23, 10, 51, 9,
+            928000, tzinfo=pytz.utc)
         ambient_light = 50.0
         mock_cursor = mock.Mock()
         store = db_store.AmbientLightStore(mock_cursor)
         store.store_ambient_light(timestamp, ambient_light)
         mock_cursor.execute.assert_called_once_with(
-            "INSERT INTO ambient_light VALUES (?, ?)", (timestamp,
-                                                        ambient_light))
+            "INSERT INTO ambient_light VALUES (?, ?)", (
+                '2016-07-23T10:51:09.928000+00:00', ambient_light))
 
     def test_retrieve_ambient_light(self):
         mock_cursor = mock.Mock()
@@ -116,13 +121,16 @@ class StoreClassesTest(unittest.TestCase):
 
     def test_store_humidity(self):
         """Should insert timestamp and humidity level into database."""
-        timestamp = datetime.datetime(2016, 7, 23, 10, 51, 9, 928000)
+        timestamp = datetime.datetime(
+            2016, 7, 23, 10, 51, 9,
+            928000, tzinfo=pytz.utc)
         humidity = 50.0
         mock_cursor = mock.Mock()
         store = db_store.HumidityStore(mock_cursor)
         store.store_humidity(timestamp, humidity)
         mock_cursor.execute.assert_called_once_with(
-            "INSERT INTO ambient_humidity VALUES (?, ?)", (timestamp, humidity))
+            "INSERT INTO ambient_humidity VALUES (?, ?)",
+            ('2016-07-23T10:51:09.928000+00:00', humidity))
 
     def test_retrieve_humidity(self):
         mock_cursor = mock.Mock()
@@ -158,14 +166,16 @@ class StoreClassesTest(unittest.TestCase):
 
     def test_store_reservoir_level(self):
         """Should insert timestamp and reservoir level into detabase."""
-        timestamp = datetime.datetime(2016, 7, 23, 10, 51, 9, 928000)
+        timestamp = datetime.datetime(
+            2016, 7, 23, 10, 51, 9,
+            928000, tzinfo=pytz.utc)
         reservoir_level = 1000.0
         mock_cursor = mock.Mock()
         store = db_store.ReservoirLevelStore(mock_cursor)
         store.store_reservoir_level(timestamp, reservoir_level)
         mock_cursor.execute.assert_called_once_with(
-            "INSERT INTO reservoir_level VALUES (?, ?)", (timestamp,
-                                                          reservoir_level))
+            "INSERT INTO reservoir_level VALUES (?, ?)", (
+                '2016-07-23T10:51:09.928000+00:00', reservoir_level))
 
     def test_retrieve_reservoir_level(self):
         mock_cursor = mock.Mock()
@@ -202,13 +212,16 @@ class StoreClassesTest(unittest.TestCase):
 
     def test_store_temperature(self):
         """Should insert timestamp and temperature into database."""
-        timestamp = datetime.datetime(2016, 7, 23, 10, 51, 9, 928000)
+        timestamp = datetime.datetime(
+            2016, 7, 23, 10, 51, 9,
+            928000, tzinfo=pytz.utc)
         temperature = 21.1
         mock_cursor = mock.Mock()
         store = db_store.TemperatureStore(mock_cursor)
         store.store_temperature(timestamp, temperature)
         mock_cursor.execute.assert_called_once_with(
-            "INSERT INTO temperature VALUES (?, ?)", (timestamp, temperature))
+            "INSERT INTO temperature VALUES (?, ?)",
+            ('2016-07-23T10:51:09.928000+00:00', temperature))
 
     def test_retrieve_temperature(self):
         mock_cursor = mock.Mock()
@@ -245,14 +258,16 @@ class StoreClassesTest(unittest.TestCase):
 
     def test_store_water_pumped(self):
         """Should insert timestamp and volume of water pumped into database."""
-        timestamp = datetime.datetime(2016, 7, 23, 10, 51, 9, 928000)
+        timestamp = datetime.datetime(
+            2016, 7, 23, 10, 51, 9,
+            928000, tzinfo=pytz.utc)
         water_pumped = 200.0
         mock_cursor = mock.Mock()
         store = db_store.WateringEventStore(mock_cursor)
         store.store_water_pumped(timestamp, water_pumped)
         mock_cursor.execute.assert_called_once_with(
-            "INSERT INTO watering_events VALUES (?, ?)", (timestamp,
-                                                          water_pumped))
+            "INSERT INTO watering_events VALUES (?, ?)", (
+                '2016-07-23T10:51:09.928000+00:00', water_pumped))
 
     def test_retrieve_water_pumped(self):
         mock_cursor = mock.Mock()
