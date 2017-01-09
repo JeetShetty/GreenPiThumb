@@ -27,11 +27,12 @@ class DuplicateGpioPinNumberError(Error):
 class DuplicateAdcChannelError(Error):
     """Indicates an attempt to parse an ADC channel with an invalid value."""
 
+
 # Represents GreenPiThumb's Rapsberry Pi GPIO pin configuration.
-_GpioPinConfig = collections.namedtuple(
-    '_GpioPinConfig', ['pump', 'dht11', 'soil_moisture_1', 'soil_moisture_2',
-                       'mcp3008_clk', 'mcp3008_dout', 'mcp3008_din',
-                       'mcp3008_cs_shdn'])
+_GpioPinConfig = collections.namedtuple('_GpioPinConfig', [
+    'pump', 'dht11', 'soil_moisture_1', 'soil_moisture_2', 'mcp3008_clk',
+    'mcp3008_dout', 'mcp3008_din', 'mcp3008_cs_shdn'
+])
 
 
 def _validate_gpio_pin_config(gpio_config):

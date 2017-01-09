@@ -16,8 +16,7 @@ class StoreClassesTest(unittest.TestCase):
     def test_store_soil_moisture(self):
         """Should insert timestamp and moisture level into database."""
         timestamp = datetime.datetime(
-            2016, 7, 23, 10, 51, 9,
-            928000, tzinfo=pytz.utc)
+            2016, 7, 23, 10, 51, 9, 928000, tzinfo=pytz.utc)
         soil_moisture = 300
         mock_cursor = mock.Mock()
         store = db_store.SoilMoistureStore(mock_cursor)
@@ -72,8 +71,7 @@ class StoreClassesTest(unittest.TestCase):
     def test_store_ambient_light(self):
         """Should insert timestamp and ambient light into database."""
         timestamp = datetime.datetime(
-            2016, 7, 23, 10, 51, 9,
-            928000, tzinfo=pytz.utc)
+            2016, 7, 23, 10, 51, 9, 928000, tzinfo=pytz.utc)
         ambient_light = 50.0
         mock_cursor = mock.Mock()
         store = db_store.AmbientLightStore(mock_cursor)
@@ -114,8 +112,7 @@ class StoreClassesTest(unittest.TestCase):
     def test_store_humidity(self):
         """Should insert timestamp and humidity level into database."""
         timestamp = datetime.datetime(
-            2016, 7, 23, 10, 51, 9,
-            928000, tzinfo=pytz.utc)
+            2016, 7, 23, 10, 51, 9, 928000, tzinfo=pytz.utc)
         humidity = 50.0
         mock_cursor = mock.Mock()
         store = db_store.HumidityStore(mock_cursor)
@@ -155,8 +152,7 @@ class StoreClassesTest(unittest.TestCase):
     def test_store_reservoir_level(self):
         """Should insert timestamp and reservoir level into detabase."""
         timestamp = datetime.datetime(
-            2016, 7, 23, 10, 51, 9,
-            928000, tzinfo=pytz.utc)
+            2016, 7, 23, 10, 51, 9, 928000, tzinfo=pytz.utc)
         reservoir_level = 1000.0
         mock_cursor = mock.Mock()
         store = db_store.ReservoirLevelStore(mock_cursor)
@@ -197,8 +193,7 @@ class StoreClassesTest(unittest.TestCase):
     def test_store_temperature(self):
         """Should insert timestamp and temperature into database."""
         timestamp = datetime.datetime(
-            2016, 7, 23, 10, 51, 9,
-            928000, tzinfo=pytz.utc)
+            2016, 7, 23, 10, 51, 9, 928000, tzinfo=pytz.utc)
         temperature = 21.1
         mock_cursor = mock.Mock()
         store = db_store.TemperatureStore(mock_cursor)
@@ -239,8 +234,7 @@ class StoreClassesTest(unittest.TestCase):
     def test_store_water_pumped(self):
         """Should insert timestamp and volume of water pumped into database."""
         timestamp = datetime.datetime(
-            2016, 7, 23, 10, 51, 9,
-            928000, tzinfo=pytz.utc)
+            2016, 7, 23, 10, 51, 9, 928000, tzinfo=pytz.utc)
         water_pumped = 200.0
         mock_cursor = mock.Mock()
         store = db_store.WateringEventStore(mock_cursor)
