@@ -14,6 +14,8 @@ class WiringConfigParserTest(unittest.TestCase):
 [gpio_pins]
 pump: 26
 dht11: 21
+soil_moisture_1: 16
+soil_moisture_2: 12
 mcp3008_clk: 18
 mcp3008_dout: 23
 mcp3008_din: 24
@@ -25,6 +27,8 @@ light_sensor: 6
 """)
         self.assertEquals(wiring_config.gpio_pins.pump, 26)
         self.assertEquals(wiring_config.gpio_pins.dht11, 21)
+        self.assertEquals(wiring_config.gpio_pins.soil_moisture_1, 16)
+        self.assertEquals(wiring_config.gpio_pins.soil_moisture_2, 12)
         self.assertEquals(wiring_config.gpio_pins.mcp3008_clk, 18)
         self.assertEquals(wiring_config.gpio_pins.mcp3008_dout, 23)
         self.assertEquals(wiring_config.gpio_pins.mcp3008_din, 24)
@@ -38,6 +42,8 @@ light_sensor: 6
 [gpio_pins]
 pump: 26
 dht11: 21
+soil_moisture_1: 16
+soil_moisture_2: 12
 mcp3008_clk: 18
 mcp3008_dout: 23
 mcp3008_din: 24
@@ -75,6 +81,8 @@ light_sensor: 6
 [gpio_pins]
 
 dht11: 21
+soil_moisture_1: 16
+soil_moisture_2: 12
 mcp3008_clk: 18
 mcp3008_dout: 23
 mcp3008_din: 24
@@ -93,6 +101,8 @@ light_sensor: 6
             wiring_config_parser.parse("""
 [gpio_pins]
 dht11: 21
+soil_moisture_1: 16
+soil_moisture_2: 12
 mcp3008_clk: 18
 mcp3008_dout: 23
 mcp3008_din: 24
@@ -113,6 +123,8 @@ light_sensor: 6
 [gpio_pins]
 pump: 26
 dht11: 21
+soil_moisture_1: 16
+soil_moisture_2: 12
 mcp3008_clk: 18
 mcp3008_dout: 23
 mcp3008_din: 24
@@ -131,6 +143,8 @@ light_sensor: 6
 [gpio_pins]
 pump: 26
 dht11: 21
+soil_moisture_1: 16
+soil_moisture_2: 12
 mcp3008_clk: 18
 mcp3008_dout: 23
 mcp3008_din: 24
@@ -149,6 +163,8 @@ soil_moisture_sensor: -1
 [gpio_pins]
 pump: 26
 dht11: 21
+soil_moisture_1: 16
+soil_moisture_2: 12
 mcp3008_clk: 18
 mcp3008_dout: 23
 mcp3008_din: 24
@@ -167,6 +183,8 @@ soil_moisture_sensor: 8
 [gpio_pins]
 pump: 26
 dht11: 21
+soil_moisture_1: 16
+soil_moisture_2: 12
 mcp3008_clk: 18
 mcp3008_dout: 23
 mcp3008_din: 24
@@ -185,6 +203,8 @@ soil_moisture_sensor: banana
 [gpio_pins]
 pump: 26
 dht11: 21
+soil_moisture_1: 16
+soil_moisture_2: 12
 mcp3008_clk: 18
 mcp3008_dout: 23
 mcp3008_din: 24

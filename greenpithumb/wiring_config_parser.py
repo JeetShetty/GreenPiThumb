@@ -1,3 +1,4 @@
+import collections
 import ConfigParser
 import io
 
@@ -26,42 +27,11 @@ class DuplicateGpioPinNumberError(Error):
 class DuplicateAdcChannelError(Error):
     """Indicates an attempt to parse an ADC channel with an invalid value."""
 
-
-class _GpioPinConfig(object):
-    """Represents GreenPiThumb's Rapsberry Pi GPIO pin configuration."""
-
-    def __init__(self, pump, dht11, mcp3008_clk, mcp3008_dout, mcp3008_din,
-                 mcp3008_cs_shdn):
-        self._pump = pump
-        self._dht11 = dht11
-        self._mcp3008_clk = mcp3008_clk
-        self._mcp3008_dout = mcp3008_dout
-        self._mcp3008_din = mcp3008_din
-        self._mcp3008_cs_shdn = mcp3008_cs_shdn
-
-    @property
-    def pump(self):
-        return self._pump
-
-    @property
-    def dht11(self):
-        return self._dht11
-
-    @property
-    def mcp3008_clk(self):
-        return self._mcp3008_clk
-
-    @property
-    def mcp3008_dout(self):
-        return self._mcp3008_dout
-
-    @property
-    def mcp3008_din(self):
-        return self._mcp3008_din
-
-    @property
-    def mcp3008_cs_shdn(self):
-        return self._mcp3008_cs_shdn
+# Represents GreenPiThumb's Rapsberry Pi GPIO pin configuration.
+_GpioPinConfig = collections.namedtuple(
+    '_GpioPinConfig', ['pump', 'dht11', 'soil_moisture_1', 'soil_moisture_2',
+                       'mcp3008_clk', 'mcp3008_dout', 'mcp3008_din',
+                       'mcp3008_cs_shdn'])
 
 
 def _validate_gpio_pin_config(gpio_config):
@@ -75,9 +45,10 @@ def _validate_gpio_pin_config(gpio_config):
             multiple components.
     """
     used_pins = set()
-    for pin in [gpio_config.pump, gpio_config.dht11, gpio_config.mcp3008_clk,
-                gpio_config.mcp3008_dout, gpio_config.mcp3008_din,
-                gpio_config.mcp3008_cs_shdn]:
+    for pin in [gpio_config.pump, gpio_config.dht11,
+                gpio_config.soil_moisture_1, gpio_config.soil_moisture_2,
+                gpio_config.mcp3008_clk, gpio_config.mcp3008_dout,
+                gpio_config.mcp3008_din, gpio_config.mcp3008_cs_shdn]:
         if pin in used_pins:
             raise DuplicateGpioPinNumberError(
                 'GPIO pin cannot be assigned to multiple components: %d' % pin)
@@ -200,6 +171,8 @@ def parse(config_data):
         A wiring configuration object with the following properties:
             * gpio_pins.pump
             * gpio_pins.dht11
+            * gpio_pins.soil_moisture_1
+            * gpio_pins.soil_moisture_2
             * gpio_pins.mcp3008_clk
             * gpio_pins.mcp3008_dout
             * gpio_pins.mcp3008_din
@@ -213,6 +186,10 @@ def parse(config_data):
         gpio_pin_config = _GpioPinConfig(
             pump=_parse_gpio_pin(raw_parser.get('gpio_pins', 'pump')),
             dht11=_parse_gpio_pin(raw_parser.get('gpio_pins', 'dht11')),
+            soil_moisture_1=_parse_gpio_pin(raw_parser.get('gpio_pins',
+                                                           'soil_moisture_1')),
+            soil_moisture_2=_parse_gpio_pin(raw_parser.get('gpio_pins',
+                                                           'soil_moisture_2')),
             mcp3008_clk=_parse_gpio_pin(raw_parser.get('gpio_pins',
                                                        'mcp3008_clk')),
             mcp3008_din=_parse_gpio_pin(raw_parser.get('gpio_pins',
