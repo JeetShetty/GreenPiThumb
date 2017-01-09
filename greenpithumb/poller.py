@@ -190,3 +190,23 @@ class WateringEventPoller(SensorPollerBase):
             if ml_pumped > 0:
                 self._watering_event_store.store_water_pumped(
                     self._local_clock.now(), ml_pumped)
+
+
+class CameraPoller(SensorPollerBase):
+    """Captures and stores pictures pictures from a camera."""
+
+    def __init__(self, local_clock, poll_interval, camera_manager):
+        """Creates a new CameraPoller object.
+
+        Args:
+            local_clock: A local time zone clock interface.
+            poll_interval: An int of how often the images should be captured,
+                in seconds.
+            camera_manager: An interface for capturing images.
+        """
+        super(CameraPoller, self).__init__(local_clock, poll_interval)
+        self._camera_manager = camera_manager
+
+    def _poll_once(self):
+        """Captures and stores an image."""
+        self._camera_manager.save_photo()

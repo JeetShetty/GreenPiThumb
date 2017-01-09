@@ -148,3 +148,18 @@ class WateringEventPollerTest(unittest.TestCase):
             self.mock_watering_event_store.store_water_pumped.called)
         self.assertFalse(self.mock_pump_manager.pump_if_needed.called)
         self.mock_local_clock.wait.assert_called_with(POLL_INTERVAL)
+
+
+class CameraPollerTest(unittest.TestCase):
+
+    def test_camera_poller(self):
+        clock_wait_event = threading.Event()
+        mock_local_clock = mock.Mock()
+        mock_camera_manager = mock.Mock()
+        camera_poller = poller.CameraPoller(mock_local_clock, POLL_INTERVAL,
+                                            mock_camera_manager)
+        mock_local_clock.wait.side_effect = lambda _: clock_wait_event.set()
+
+        camera_poller.start_polling_async()
+        clock_wait_event.wait(TEST_TIMEOUT_SECONDS)
+        mock_camera_manager.save_photo.assert_called()
