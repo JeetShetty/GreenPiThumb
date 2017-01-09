@@ -45,10 +45,11 @@ def _validate_gpio_pin_config(gpio_config):
             multiple components.
     """
     used_pins = set()
-    for pin in [gpio_config.pump, gpio_config.dht11,
-                gpio_config.soil_moisture_1, gpio_config.soil_moisture_2,
-                gpio_config.mcp3008_clk, gpio_config.mcp3008_dout,
-                gpio_config.mcp3008_din, gpio_config.mcp3008_cs_shdn]:
+    for pin in [
+            gpio_config.pump, gpio_config.dht11, gpio_config.mcp3008_clk,
+            gpio_config.mcp3008_dout, gpio_config.mcp3008_din,
+            gpio_config.mcp3008_cs_shdn
+    ]:
         if pin in used_pins:
             raise DuplicateGpioPinNumberError(
                 'GPIO pin cannot be assigned to multiple components: %d' % pin)
@@ -186,24 +187,20 @@ def parse(config_data):
         gpio_pin_config = _GpioPinConfig(
             pump=_parse_gpio_pin(raw_parser.get('gpio_pins', 'pump')),
             dht11=_parse_gpio_pin(raw_parser.get('gpio_pins', 'dht11')),
-            soil_moisture_1=_parse_gpio_pin(raw_parser.get('gpio_pins',
-                                                           'soil_moisture_1')),
-            soil_moisture_2=_parse_gpio_pin(raw_parser.get('gpio_pins',
-                                                           'soil_moisture_2')),
-            mcp3008_clk=_parse_gpio_pin(raw_parser.get('gpio_pins',
-                                                       'mcp3008_clk')),
-            mcp3008_din=_parse_gpio_pin(raw_parser.get('gpio_pins',
-                                                       'mcp3008_din')),
-            mcp3008_dout=_parse_gpio_pin(raw_parser.get('gpio_pins',
-                                                        'mcp3008_dout')),
-            mcp3008_cs_shdn=_parse_gpio_pin(raw_parser.get('gpio_pins',
-                                                           'mcp3008_cs_shdn')))
+            mcp3008_clk=_parse_gpio_pin(
+                raw_parser.get('gpio_pins', 'mcp3008_clk')),
+            mcp3008_din=_parse_gpio_pin(
+                raw_parser.get('gpio_pins', 'mcp3008_din')),
+            mcp3008_dout=_parse_gpio_pin(
+                raw_parser.get('gpio_pins', 'mcp3008_dout')),
+            mcp3008_cs_shdn=_parse_gpio_pin(
+                raw_parser.get('gpio_pins', 'mcp3008_cs_shdn')))
         _validate_gpio_pin_config(gpio_pin_config)
         adc_channel_config = _AdcChannelConfig(
-            soil_moisture_sensor=_parse_adc_channel(raw_parser.get(
-                'adc_channels', 'soil_moisture_sensor')),
-            light_sensor=_parse_adc_channel(raw_parser.get('adc_channels',
-                                                           'light_sensor')))
+            soil_moisture_sensor=_parse_adc_channel(
+                raw_parser.get('adc_channels', 'soil_moisture_sensor')),
+            light_sensor=_parse_adc_channel(
+                raw_parser.get('adc_channels', 'light_sensor')))
         _validate_adc_channel_config(adc_channel_config)
         return _WiringConfig(gpio_pin_config, adc_channel_config)
     except ConfigParser.Error as ex:

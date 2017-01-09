@@ -13,8 +13,8 @@ class PumpTest(unittest.TestCase):
         self.mock_clock = mock.Mock(spec=clock.Clock)
 
     def test_pump_4_3_liters(self):
-        pump.Pump(self.mock_pi_io, self.mock_clock,
-                  pump_pin=6).pump_water(4300.0)
+        pump.Pump(
+            self.mock_pi_io, self.mock_clock, pump_pin=6).pump_water(4300.0)
         # Pump should call wait() exactly once.
         self.assertEqual(1, len(self.mock_clock.wait.call_args_list))
         wait_time_actual = self.mock_clock.wait.call_args[0][0]
@@ -28,8 +28,8 @@ class PumpTest(unittest.TestCase):
         self.mock_pi_io.turn_pin_off.assert_called_once_with(6)
 
     def test_pump_2_15_liters(self):
-        pump.Pump(self.mock_pi_io, self.mock_clock,
-                  pump_pin=6).pump_water(2150.0)
+        pump.Pump(
+            self.mock_pi_io, self.mock_clock, pump_pin=6).pump_water(2150.0)
         # Pump should call wait() exactly once.
         self.assertEqual(1, len(self.mock_clock.wait.call_args_list))
         wait_time_actual = self.mock_clock.wait.call_args[0][0]

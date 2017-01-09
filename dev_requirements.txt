@@ -2,4 +2,4 @@ coverage
 mock
 pyflakes==1.2.3
 pylint==1.5.5
-yapf==0.7.1
+yapf==0.14.0
