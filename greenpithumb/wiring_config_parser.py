@@ -188,6 +188,10 @@ def parse(config_data):
         gpio_pin_config = _GpioPinConfig(
             pump=_parse_gpio_pin(raw_parser.get('gpio_pins', 'pump')),
             dht11=_parse_gpio_pin(raw_parser.get('gpio_pins', 'dht11')),
+            soil_moisture_1=_parse_gpio_pin(
+                raw_parser.get('gpio_pins', 'soil_moisture_1')),
+            soil_moisture_2=_parse_gpio_pin(
+                raw_parser.get('gpio_pins', 'soil_moisture_2')),
             mcp3008_clk=_parse_gpio_pin(
                 raw_parser.get('gpio_pins', 'mcp3008_clk')),
             mcp3008_din=_parse_gpio_pin(
