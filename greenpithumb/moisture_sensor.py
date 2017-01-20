@@ -1,17 +1,47 @@
 class MoistureSensor(object):
     """Wrapper for DHT11 moisture sensor."""
 
-    def __init__(self, adc, channel):
+    def __init__(self, adc, pi_io, channel, gpio_pin_1, gpio_pin_2, clock):
         """Creates a new MoistureSensor wrapper.
 
         Args:
             adc: ADC(analog to digital) interface to receive analog signals from
                 moisture sensor.
-            channel: ADC channel to which the moisture sensor is connected.
+            pi_io: Raspberry Pi I/O interface.
+            channel: ADC channel to which the moisture sensor is connected. Must
+                be an int between 0 and 7.
+            gpio_pin_1: One of the Raspberry Pi GPIO pins that the moisture
+                sensor is connected to. Must be an int between 2 and 27.
+            gpio_pin_2: The other GPIO pin that the moisture sensor is connected
+                to. Must be an int between 2 and 27.
+            clock: Clock interface.
         """
         self._adc = adc
+        self._pi_io = pi_io
         self._channel = channel
+        self._gpio_pin_1 = gpio_pin_1
+        self._gpio_pin_2 = gpio_pin_2
+        self._clock = clock
 
     def moisture(self):
-        """Returns moisture level."""
-        return self._adc.read_adc(self._channel)
+        """Returns the moisture level.
+
+        Takes two readings from the moisture sensor with the GPIO pins powering
+        it alternately turned on and off (one in each state). Returns the
+        average of the two readings.
+        """
+        try:
+            self._pi_io.turn_pin_on(self._gpio_pin_1)
+            self._pi_io.turn_pin_off(self._gpio_pin_2)
+            moisture_one = self._adc.read_adc(self._channel)
+
+            self._clock.wait(0.1)
+
+            self._pi_io.turn_pin_on(self._gpio_pin_2)
+            self._pi_io.turn_pin_off(self._gpio_pin_1)
+            moisture_two = 1023 - self._adc.read_adc(self._channel)
+
+            return (moisture_one + moisture_two) / 2
+        finally:
+            self._pi_io.turn_pin_off(self._gpio_pin_1)
+            self._pi_io.turn_pin_off(self._gpio_pin_2)
