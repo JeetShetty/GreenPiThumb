@@ -1,13 +1,14 @@
+import datetime
+import threading
 import unittest
 
 import mock
-import datetime
-import threading
+import pytz
 
 from greenpithumb import poller
 
 TEST_TIMEOUT_SECONDS = 3.0
-TIMESTAMP_A = datetime.datetime(2016, 7, 23, 10, 51, 9, 928000)
+TIMESTAMP_A = datetime.datetime(2016, 7, 23, 10, 51, 9, 928000, tzinfo=pytz.utc)
 POLL_INTERVAL = 1
 
 
