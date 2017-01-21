@@ -1,7 +1,8 @@
+import datetime
 import unittest
 
 import mock
-import datetime
+import pytz
 
 from greenpithumb import dht11
 
@@ -16,8 +17,8 @@ class CachingDHT11Test(unittest.TestCase):
         caching_dht11 = dht11.CachingDHT11(self.mock_dht11_read_func,
                                            self.mock_clock)
         self.mock_dht11_read_func.return_value = (50.0, 21.0)
-        self.mock_clock.now.return_value = (
-            datetime.datetime(2016, 1, 1, 0, 0, 0, 0))
+        self.mock_clock.now.return_value = (datetime.datetime(
+            2016, 1, 1, 0, 0, 0, 0, tzinfo=pytz.utc))
 
         humidity = caching_dht11.humidity()
         temperature = caching_dht11.temperature()
@@ -30,8 +31,8 @@ class CachingDHT11Test(unittest.TestCase):
         caching_dht11 = dht11.CachingDHT11(self.mock_dht11_read_func,
                                            self.mock_clock)
         self.mock_dht11_read_func.return_value = (50.0, 21.0)
-        self.mock_clock.now.return_value = (
-            datetime.datetime(2016, 1, 1, 0, 0, 0, 0))
+        self.mock_clock.now.return_value = (datetime.datetime(
+            2016, 1, 1, 0, 0, 0, 0, tzinfo=pytz.utc))
 
         # Call humidity() and temperature() for the first time.
         caching_dht11.humidity()
@@ -39,8 +40,8 @@ class CachingDHT11Test(unittest.TestCase):
         self.assertEqual(1, self.mock_dht11_read_func.call_count)
 
         # Set clock to just below expiration time for cached values.
-        self.mock_clock.now.return_value = (
-            datetime.datetime(2016, 1, 1, 0, 0, 1, 999999))
+        self.mock_clock.now.return_value = (datetime.datetime(
+            2016, 1, 1, 0, 0, 1, 999999, tzinfo=pytz.utc))
 
         # Call humidity() and temperature() again to verify they don't cause a
         # second read.
@@ -52,8 +53,8 @@ class CachingDHT11Test(unittest.TestCase):
         caching_dht11 = dht11.CachingDHT11(self.mock_dht11_read_func,
                                            self.mock_clock)
         self.mock_dht11_read_func.return_value = (50.0, 21.0)
-        self.mock_clock.now.return_value = (
-            datetime.datetime(2016, 1, 1, 0, 0, 0, 0))
+        self.mock_clock.now.return_value = (datetime.datetime(
+            2016, 1, 1, 0, 0, 0, 0, tzinfo=pytz.utc))
 
         # Call humidity() and temperature() for the first time.
         caching_dht11.humidity()
@@ -61,8 +62,8 @@ class CachingDHT11Test(unittest.TestCase):
         self.assertEqual(1, self.mock_dht11_read_func.call_count)
 
         # Set clock to expiration time for cached values.
-        self.mock_clock.now.return_value = (
-            datetime.datetime(2016, 1, 1, 0, 0, 2, 0))
+        self.mock_clock.now.return_value = (datetime.datetime(
+            2016, 1, 1, 0, 0, 2, 0, tzinfo=pytz.utc))
 
         # Call humidity() and temperature() again to verify they cause a second
         # read.

@@ -1,6 +1,8 @@
 import datetime
 import threading
 
+import pytz
+
 # Maximum time a sensor reading can be used for, in seconds
 _FRESHNESS_THRESHOLD = 2
 # Position of humidity value in the tuple returned from DHT11 read function.
@@ -27,7 +29,7 @@ class CachingDHT11(object):
         """
         self._dht11_read_func = dht11_read_func
         self._clock = clock
-        self._last_reading_time = datetime.datetime.min
+        self._last_reading_time = datetime.datetime.min.replace(tzinfo=pytz.utc)
         self._last_reading = None
         self._lock = threading.Lock()
 
