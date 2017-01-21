@@ -1,6 +1,3 @@
-#import RPi.GPIO as GPIO
-
-
 class IO(object):
     """Wrapper for input and output on a Raspberry Pi board.
 
@@ -16,6 +13,7 @@ class IO(object):
             gpio: Raspberry Pi GPIO module.
         """
         self._GPIO = gpio
+        self._GPIO.setmode(self._GPIO.BOARD)
         self._output_pins = set()
 
     def turn_pin_on(self, pin):
