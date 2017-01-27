@@ -1,7 +1,11 @@
 import argparse
 import time
 
-import fake_sensors
+import Adafruit_DHT
+import Adafruit_MCP3008
+
+import clock
+import dht11
 import humidity_sensor
 import light_sensor
 import moisture_sensor
@@ -13,13 +17,21 @@ class SensorHarness(object):
     """Simple container for GreenPiThumbs that polls their values and prints."""
 
     def __init__(self, wiring_config):
-        # TODO(mtlynch): Hook wiring_config up to components that depend on it.
-        self._adc = fake_sensors.FakeAdc(
-            light_start=500.0, moisture_start=600.0)
-        self._light_sensor = light_sensor.LightSensor(self._adc)
-        self._moisture_sensor = moisture_sensor.MoistureSensor(self._adc)
-        self._dht11 = fake_sensors.FakeDht11(
-            temperature_start=35.0, humidity_start=150.0)
+        local_clock = clock.LocalClock()
+        # TODO(mtlynch): Fix the wiring config pin names so they match the
+        # params to MCP3008's constructor.
+        self._adc = Adafruit_MCP3008.MCP3008(
+            clk=wiring_config.gpio_pins.mcp3008_clk,
+            cs=wiring_config.gpio_pins.mcp3008_cs_shdn,
+            miso=wiring_config.gpio_pins.mcp3008_dout,
+            mosi=wiring_config.gpio_pins.mcp3008_din)
+        self._light_sensor = light_sensor.LightSensor(
+            self._adc, wiring_config.adc_channels.light_sensor)
+        self._moisture_sensor = moisture_sensor.MoistureSensor(
+            self._adc, wiring_config.adc_channels.soil_moisture_sensor)
+        self._dht11 = dht11.CachingDHT11(
+            lambda: Adafruit_DHT.read_retry(Adafruit_DHT.DHT11, wiring_config.gpio_pins.dht11),
+            local_clock)
         self._temperature_sensor = temperature_sensor.TemperatureSensor(
             self._dht11)
         self._humidity_sensor = humidity_sensor.HumiditySensor(self._dht11)
@@ -30,12 +42,11 @@ class SensorHarness(object):
 
     def print_readings(self):
         """Print sensor values in columns."""
-        light_reading = '%.1f%%' % self._light_sensor.get_light_level()
+        light_reading = '%.1f%%' % self._light_sensor.ambient_light()
         moisture_reading = '%.1f' % self._moisture_sensor.moisture()
-        temperature_reading = (
-            ('%1.f' % self._temperature_sensor.get_temperature()
-            ) + u'\N{DEGREE SIGN} C')
-        humidity_reading = '%.1f' % self._humidity_sensor.get_humidity_level()
+        temperature_reading = (('%.1f' % self._temperature_sensor.temperature())
+                               + u'\N{DEGREE SIGN} C')
+        humidity_reading = '%.1f' % self._humidity_sensor.humidity()
         print '%s\t%s\t\t%s\t\t%s' % (light_reading, moisture_reading,
                                       temperature_reading, humidity_reading)
 
@@ -67,5 +78,5 @@ if __name__ == '__main__':
         '-c',
         '--config_file',
         help='Wiring config file',
-        default='wiring_config.ini')
+        default='greenpithumb/wiring_config.ini')
     main(parser.parse_args())

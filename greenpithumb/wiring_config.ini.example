@@ -13,5 +13,5 @@ mcp3008_cs_shdn: 25
 # adc_channels section maps which GreenPiThumb component is connected to which
 # channel of the MCP3008 ADC.
 [adc_channels]
-soil_moisture_sensor: 0
-light_sensor: 6
+soil_moisture_sensor: 7
+light_sensor: 0
