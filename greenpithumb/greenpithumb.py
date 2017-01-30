@@ -18,8 +18,12 @@ class SensorHarness(object):
 
     def __init__(self, wiring_config):
         local_clock = clock.LocalClock()
-        # TODO(mtlynch): Fix the wiring config pin names so they match the
-        # params to MCP3008's constructor.
+        # The MCP3008 spec and Adafruit library use different naming for the
+        # Raspberry Pi GPIO pins, so we translate as follows:
+        # * CLK -> CLK
+        # * CS/SHDN -> CS
+        # * DOUT -> MISO
+        # * DIN -> MOSI
         self._adc = Adafruit_MCP3008.MCP3008(
             clk=wiring_config.gpio_pins.mcp3008_clk,
             cs=wiring_config.gpio_pins.mcp3008_cs_shdn,
