@@ -11,6 +11,9 @@ coverage run \
   --omit "greenpithumb/dht11/*,greenpithumb/fake_sensors.py" \
   -m unittest discover
 
+# Run static analysis for Python bugs/cruft.
+pyflakes greenpithumb/*.py tests/*.py
+
 # Check that source has correct formatting.
 yapf \
   --diff \
@@ -19,9 +22,6 @@ yapf \
   ./ \
   --exclude "./greenpithumb/dht11/*" \
   --exclude "./third_party/*"
-
-# Run static analysis for Python bugs/cruft.
-pyflakes greenpithumb/*.py tests/*.py
 
 # Check that docstrings are formatted correctly.
 PYTHONPATH=$PYTHONPATH:$(pwd)/third_party/docstringchecker \
