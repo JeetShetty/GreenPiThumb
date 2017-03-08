@@ -87,5 +87,13 @@ if __name__ == '__main__':
         '-c',
         '--config_file',
         help='Wiring config file',
-        default='greenpithumb/wiring_config.ini')
+        default='wiring_config.ini')
+    parser.add_argument(
+        '-s',
+        '--sleep_window',
+        action='append',
+        type=str,
+        help=('Time window during which GreenPiThumb will not activate its '
+              'pump. Window should be in the form of a time range in 24-hour '
+              'format, such as "03:15-03:45"'))
     main(parser.parse_args())
