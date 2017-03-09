@@ -22,12 +22,6 @@ CREATE TABLE ambient_light
     light REAL
 );
 
-CREATE TABLE reservoir_level
-(
-    timestamp TEXT,
-    level REAL  -- reservoir level (in mL)
-);
-
 CREATE TABLE watering_events
 (
     timestamp TEXT,

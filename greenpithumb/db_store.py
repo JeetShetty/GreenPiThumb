@@ -129,36 +129,6 @@ class HumidityStore(DbStoreBase):
         return humidity_data
 
 
-class ReservoirLevelStore(DbStoreBase):
-    """Stores timestamp and reservoir level readings."""
-
-    def store_reservoir_level(self, timestamp, reservoir_level):
-        """Inserts reservoir level and timestamp info into an SQLite database.
-
-        Args:
-            timestamp: A datetime object representing the time of the
-                reservoir level reading.
-            reservoir_level: A float of the reservoir level reading in mL.
-        """
-        self._cursor.execute('INSERT INTO reservoir_level VALUES (?, ?)',
-                             (_serialize_timestamp(timestamp), reservoir_level))
-
-    def retrieve_reservoir_level(self):
-        """Retrieves timestamp and reservoir level readings.
-
-        Returns:
-            A list of objects with 'timestamp' and 'reservoir_level' fields.
-        """
-        self._cursor.execute('SELECT * FROM reservoir_level')
-        data = []
-        for row in self._cursor.fetchall():
-            data.append((parser.parse(row[0]), row[1]))
-        ReservoirLevelRecord = collections.namedtuple(
-            'ReservoirLevelRecord', ['timestamp', 'reservoir_level'])
-        reservoir_level_data = map(ReservoirLevelRecord._make, data)
-        return reservoir_level_data
-
-
 class TemperatureStore(DbStoreBase):
     """Stores timestamp and ambient temperature readings."""
 

@@ -127,32 +127,6 @@ class AmbientLightPoller(SensorPollerBase):
                                                       ambient_light)
 
 
-class ReservoirPoller(SensorPollerBase):
-    """Polls for reservoir level data and stores the data."""
-
-    def __init__(self, local_clock, poll_interval, reservoir,
-                 reservoir_level_store):
-        """Creates a new ReservoirPoller object.
-
-        Args:
-            local_clock: A local time zone clock interface.
-            poll_interval: An int of how often the data should be polled for,
-                in seconds.
-            reservoir: An object that returns a reservoir level.
-            reservoir_level_store: An interface for storing reservoir level
-                readings.
-        """
-        super(ReservoirPoller, self).__init__(local_clock, poll_interval)
-        self._reservoir = reservoir
-        self._reservoir_level_store = reservoir_level_store
-
-    def _poll_once(self):
-        """Polls for and stores current reservoir level."""
-        reservoir_level = self._reservoir.reservoir_level()
-        self._reservoir_level_store.store_reservoir_level(
-            self._local_clock.now(), reservoir_level)
-
-
 class WateringEventPoller(SensorPollerBase):
     """Polls for and records watering event data.
 

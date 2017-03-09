@@ -77,21 +77,6 @@ class PollerClassesTest(unittest.TestCase):
                                                                50.0)
         self.mock_local_clock.wait.assert_called_with(POLL_INTERVAL)
 
-    def test_reservoir_poller(self):
-        reservoir_poller = poller.ReservoirPoller(
-            self.mock_local_clock, POLL_INTERVAL, self.mock_sensor,
-            self.mock_store)
-        self.mock_local_clock.now.return_value = TIMESTAMP_A
-        self.mock_local_clock.wait.side_effect = (
-            lambda _: self.clock_wait_event.set())
-        self.mock_sensor.reservoir_level.return_value = 500.0
-
-        reservoir_poller.start_polling_async()
-        self.clock_wait_event.wait(TEST_TIMEOUT_SECONDS)
-        self.mock_store.store_reservoir_level.assert_called_with(TIMESTAMP_A,
-                                                                 500.0)
-        self.mock_local_clock.wait.assert_called_with(POLL_INTERVAL)
-
 
 class WateringEventPollerTest(unittest.TestCase):
 

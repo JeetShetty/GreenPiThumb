@@ -149,47 +149,6 @@ class StoreClassesTest(unittest.TestCase):
         humidity_data = store.retrieve_humidity()
         self.assertEqual(humidity_data, [])
 
-    def test_store_reservoir_level(self):
-        """Should insert timestamp and reservoir level into detabase."""
-        timestamp = datetime.datetime(
-            2016, 7, 23, 10, 51, 9, 928000, tzinfo=pytz.utc)
-        reservoir_level = 1000.0
-        mock_cursor = mock.Mock()
-        store = db_store.ReservoirLevelStore(mock_cursor)
-        store.store_reservoir_level(timestamp, reservoir_level)
-        mock_cursor.execute.assert_called_once_with(
-            "INSERT INTO reservoir_level VALUES (?, ?)", (
-                '2016-07-23T10:51:09.928000+00:00', reservoir_level))
-
-    def test_retrieve_reservoir_level(self):
-        mock_cursor = mock.Mock()
-        store = db_store.ReservoirLevelStore(mock_cursor)
-        mock_cursor.fetchall.return_value = [
-            ('2016-07-23 10:51:09.928000-05:00', 1000),
-            ('2016-07-23 10:52:09.928000-05:00', 1200)
-        ]
-        reservoir_level_data = store.retrieve_reservoir_level()
-        reservoir_level_data.sort(
-            key=lambda ReservoirLevelRecord: ReservoirLevelRecord.timestamp)
-
-        self.assertEqual(
-            reservoir_level_data[0].timestamp,
-            datetime.datetime(
-                2016, 7, 23, 10, 51, 9, 928000, tzinfo=UTC_MINUS_5))
-        self.assertEqual(reservoir_level_data[0].reservoir_level, 1000)
-        self.assertEqual(
-            reservoir_level_data[1].timestamp,
-            datetime.datetime(
-                2016, 7, 23, 10, 52, 9, 928000, tzinfo=UTC_MINUS_5))
-        self.assertEqual(reservoir_level_data[1].reservoir_level, 1200)
-
-    def test_retrieve_reservoir_level_empty_database(self):
-        mock_cursor = mock.Mock()
-        store = db_store.ReservoirLevelStore(mock_cursor)
-        mock_cursor.fetchall.return_value = []
-        reservoir_level_data = store.retrieve_reservoir_level()
-        self.assertEqual(reservoir_level_data, [])
-
     def test_store_temperature(self):
         """Should insert timestamp and temperature into database."""
         timestamp = datetime.datetime(
