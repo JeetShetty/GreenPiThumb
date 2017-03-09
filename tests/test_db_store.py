@@ -22,7 +22,7 @@ class StoreClassesTest(unittest.TestCase):
         store = db_store.SoilMoistureStore(mock_cursor)
         store.store_soil_moisture(timestamp, soil_moisture)
         mock_cursor.execute.assert_called_once_with(
-            "INSERT INTO soil_moisture VALUES (?, ?)", (
+            'INSERT INTO soil_moisture VALUES (?, ?)', (
                 '2016-07-23T10:51:09.928000+00:00', soil_moisture))
 
     def test_latest_soil_moisture(self):
@@ -77,7 +77,7 @@ class StoreClassesTest(unittest.TestCase):
         store = db_store.AmbientLightStore(mock_cursor)
         store.store_ambient_light(timestamp, ambient_light)
         mock_cursor.execute.assert_called_once_with(
-            "INSERT INTO ambient_light VALUES (?, ?)", (
+            'INSERT INTO ambient_light VALUES (?, ?)', (
                 '2016-07-23T10:51:09.928000+00:00', ambient_light))
 
     def test_retrieve_ambient_light(self):
@@ -118,7 +118,7 @@ class StoreClassesTest(unittest.TestCase):
         store = db_store.HumidityStore(mock_cursor)
         store.store_humidity(timestamp, humidity)
         mock_cursor.execute.assert_called_once_with(
-            "INSERT INTO ambient_humidity VALUES (?, ?)",
+            'INSERT INTO ambient_humidity VALUES (?, ?)',
             ('2016-07-23T10:51:09.928000+00:00', humidity))
 
     def test_retrieve_humidity(self):
@@ -158,7 +158,7 @@ class StoreClassesTest(unittest.TestCase):
         store = db_store.TemperatureStore(mock_cursor)
         store.store_temperature(timestamp, temperature)
         mock_cursor.execute.assert_called_once_with(
-            "INSERT INTO temperature VALUES (?, ?)",
+            'INSERT INTO temperature VALUES (?, ?)',
             ('2016-07-23T10:51:09.928000+00:00', temperature))
 
     def test_retrieve_temperature(self):
@@ -199,7 +199,7 @@ class StoreClassesTest(unittest.TestCase):
         store = db_store.WateringEventStore(mock_cursor)
         store.store_water_pumped(timestamp, water_pumped)
         mock_cursor.execute.assert_called_once_with(
-            "INSERT INTO watering_events VALUES (?, ?)", (
+            'INSERT INTO watering_events VALUES (?, ?)', (
                 '2016-07-23T10:51:09.928000+00:00', water_pumped))
 
     def test_retrieve_water_pumped(self):
