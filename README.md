@@ -10,7 +10,6 @@ GreenPiThumb is a program that automatically waters a plant based on soil moistu
 - Ambient humidity
 - Ambient light
 - Soil moisture level
-- Reservoir level
 - Photographs of the plant
 
 ## Installation
