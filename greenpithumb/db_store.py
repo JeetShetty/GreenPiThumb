@@ -4,6 +4,21 @@ import sqlite3
 
 from dateutil import parser
 
+# For each record, timestamp is a datetime representing the time of the reading
+# or event.
+SoilMoistureRecord = collections.namedtuple('SoilMoistureRecord',
+                                            ['timestamp', 'soil_moisture'])
+AmbientLightRecord = collections.namedtuple('AmbientLightRecord',
+                                            ['timestamp', 'ambient_light'])
+HumidityRecord = collections.namedtuple('HumidityRecord',
+                                        ['timestamp', 'humidity'])
+# temperature value is in degrees Celsius.
+TemperatureRecord = collections.namedtuple('TemperatureRecord',
+                                           ['timestamp', 'temperature'])
+# water_pumped is the volume of water pumped in mL.
+WateringEventRecord = collections.namedtuple('WateringEventRecord',
+                                             ['timestamp', 'water_pumped'])
+
 # SQL statements to create database tables. Each statement is separated by a
 # semicolon and newline.
 _CREATE_TABLE_COMMANDS = """
@@ -105,16 +120,15 @@ class DbStoreBase(object):
 class SoilMoistureStore(DbStoreBase):
     """Stores and retrieves timestamp and soil moisture readings."""
 
-    def store_soil_moisture(self, timestamp, soil_moisture):
+    def store_soil_moisture(self, soil_moisture_record):
         """Inserts moisture and timestamp info into an SQLite database.
 
         Args:
-            timestamp: A datetime object representing the time of the soil
-                moisture reading.
-            soil_moisture: An int of the soil moisture reading.
+            soil_moisture_record: Moisture record to store.
         """
-        self._cursor.execute('INSERT INTO soil_moisture VALUES (?, ?)',
-                             (_serialize_timestamp(timestamp), soil_moisture))
+        self._cursor.execute('INSERT INTO soil_moisture VALUES (?, ?)', (
+            _serialize_timestamp(soil_moisture_record.timestamp),
+            soil_moisture_record.soil_moisture))
 
     def latest_soil_moisture(self):
         """Returns the most recent soil moisture reading."""
@@ -139,8 +153,6 @@ class SoilMoistureStore(DbStoreBase):
         data = []
         for row in self._cursor.fetchall():
             data.append((parser.parse(row[0]), row[1]))
-        SoilMoistureRecord = collections.namedtuple(
-            'SoilMoistureRecord', ['timestamp', 'soil_moisture'])
         soil_moisture_data = map(SoilMoistureRecord._make, data)
         return soil_moisture_data
 
@@ -148,16 +160,15 @@ class SoilMoistureStore(DbStoreBase):
 class AmbientLightStore(DbStoreBase):
     """Stores timestamp and ambient light readings."""
 
-    def store_ambient_light(self, timestamp, ambient_light):
+    def store_ambient_light(self, ambient_light_record):
         """Inserts ambient light and timestamp info into an SQLite database.
 
         Args:
-            timestamp: A datetime object representing the time of the ambient
-                light reading.
-            ambient_light: A float of the ambient light level.
+            ambient_light_record: Ambient light record to store.
         """
-        self._cursor.execute('INSERT INTO ambient_light VALUES (?, ?)',
-                             (_serialize_timestamp(timestamp), ambient_light))
+        self._cursor.execute('INSERT INTO ambient_light VALUES (?, ?)', (
+            _serialize_timestamp(ambient_light_record.timestamp),
+            ambient_light_record.ambient_light))
 
     def retrieve_ambient_light(self):
         """Retrieves timestamp and ambient light readings.
@@ -169,8 +180,6 @@ class AmbientLightStore(DbStoreBase):
         data = []
         for row in self._cursor.fetchall():
             data.append((parser.parse(row[0]), row[1]))
-        AmbientLightRecord = collections.namedtuple(
-            'AmbientLightRecord', ['timestamp', 'ambient_light'])
         ambient_light_data = map(AmbientLightRecord._make, data)
         return ambient_light_data
 
@@ -178,16 +187,15 @@ class AmbientLightStore(DbStoreBase):
 class HumidityStore(DbStoreBase):
     """Stores timestamp and ambient humidity readings."""
 
-    def store_humidity(self, timestamp, humidity):
+    def store_humidity(self, humidity_record):
         """Inserts humidity and timestamp info into an SQLite database.
 
         Args:
-            timestamp: A datetime object representing the time of the
-                humidity reading.
-            humidity: A float of the humidity reading.
+            humidity_record: Humidity record to store.
         """
         self._cursor.execute('INSERT INTO ambient_humidity VALUES (?, ?)',
-                             (_serialize_timestamp(timestamp), humidity))
+                             (_serialize_timestamp(humidity_record.timestamp),
+                              humidity_record.humidity))
 
     def retrieve_humidity(self):
         """Retrieves timestamp and relative humidity readings.
@@ -199,8 +207,6 @@ class HumidityStore(DbStoreBase):
         data = []
         for row in self._cursor.fetchall():
             data.append((parser.parse(row[0]), row[1]))
-        HumidityRecord = collections.namedtuple('HumidityRecord',
-                                                ['timestamp', 'humidity'])
         humidity_data = map(HumidityRecord._make, data)
         return humidity_data
 
@@ -208,16 +214,15 @@ class HumidityStore(DbStoreBase):
 class TemperatureStore(DbStoreBase):
     """Stores timestamp and ambient temperature readings."""
 
-    def store_temperature(self, timestamp, temperature):
+    def store_temperature(self, temperature_record):
         """Inserts temperature and timestamp info into an SQLite database.
 
         Args:
-            timestamp: A datetime object representing the time of the
-                temperature reading.
-            temperature: A float of the temperature reading in Celsius.
+            temperature_record: Temperature record to store.
         """
-        self._cursor.execute('INSERT INTO temperature VALUES (?, ?)',
-                             (_serialize_timestamp(timestamp), temperature))
+        self._cursor.execute('INSERT INTO temperature VALUES (?, ?)', (
+            _serialize_timestamp(temperature_record.timestamp),
+            temperature_record.temperature))
 
     def retrieve_temperature(self):
         """Retrieves timestamp and temperature(C) readings.
@@ -229,8 +234,6 @@ class TemperatureStore(DbStoreBase):
         data = []
         for row in self._cursor.fetchall():
             data.append((parser.parse(row[0]), row[1]))
-        TemperatureRecord = collections.namedtuple('TemperatureRecord',
-                                                   ['timestamp', 'temperature'])
         temperature_data = map(TemperatureRecord._make, data)
         return temperature_data
 
@@ -238,15 +241,15 @@ class TemperatureStore(DbStoreBase):
 class WateringEventStore(DbStoreBase):
     """Stores timestamp and volume of water pumped to plant."""
 
-    def store_water_pumped(self, timestamp, water_pumped):
+    def store_water_pumped(self, watering_event_record):
         """Inserts water volume and timestamp info into an SQLite database.
 
         Args:
-            timestamp: A datetime object representing the time of the reading.
-            water_pumped: A float of the water volume pumped in mL.
+            watering_event_record: Watering event record to store.
         """
-        self._cursor.execute('INSERT INTO watering_events VALUES (?, ?)',
-                             (_serialize_timestamp(timestamp), water_pumped))
+        self._cursor.execute('INSERT INTO watering_events VALUES (?, ?)', (
+            _serialize_timestamp(watering_event_record.timestamp),
+            watering_event_record.water_pumped))
 
     def retrieve_water_pumped(self):
         """Retrieves timestamp and volume of water pumped(in mL).
@@ -258,7 +261,5 @@ class WateringEventStore(DbStoreBase):
         data = []
         for row in self._cursor.fetchall():
             data.append((parser.parse(row[0]), row[1]))
-        WateringEventRecord = collections.namedtuple(
-            'WateringEventRecord', ['timestamp', 'water_pumped'])
         watering_event_data = map(WateringEventRecord._make, data)
         return watering_event_data
