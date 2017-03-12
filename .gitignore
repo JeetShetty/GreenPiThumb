@@ -70,3 +70,6 @@ target/
 
 # GreenPiThumb wiring configuration file
 wiring_config.ini
+
+# GreenPiThumb SQLite database
+greenpithumb.db

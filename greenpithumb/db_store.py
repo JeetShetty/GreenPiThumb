@@ -1,5 +1,38 @@
 import collections
+import os
+import sqlite3
+
 from dateutil import parser
+
+# SQL statements to create database tables. Each statement is separated by a
+# semicolon and newline.
+_CREATE_TABLE_COMMANDS = """
+CREATE TABLE temperature
+(
+    timestamp TEXT,
+    temperature REAL    --ambient temperature (in degrees Celsius)
+);
+CREATE TABLE ambient_humidity
+(
+    timestamp TEXT,
+    humidity REAL
+);
+CREATE TABLE soil_moisture
+(
+    timestamp TEXT,
+    soil_moisture INTEGER
+);
+CREATE TABLE ambient_light
+(
+    timestamp TEXT,
+    light REAL
+);
+CREATE TABLE watering_events
+(
+    timestamp TEXT,
+    water_pumped REAL   --amount of water pumped (in mL)
+);
+"""
 
 
 def _serialize_timestamp(timestamp):
@@ -12,6 +45,49 @@ def _serialize_timestamp(timestamp):
         Timestamp as a string in ISO 8601 format.
     """
     return timestamp.isoformat('T')
+
+
+def _open_db(db_path):
+    return sqlite3.connect(db_path)
+
+
+def _create_db(db_path):
+    """Creates and initializes a SQLite database with a GreenPiThumb schema.
+
+    Creates a SQLite database at the path specified and creates GreenPiThumb's
+    data tables within the database.
+
+    Args:
+        db_path: Path to where to create database file.
+
+    Returns:
+        A sqlite connection object for the database. The caller is responsible
+        for closing the object.
+    """
+    sql_commands = _CREATE_TABLE_COMMANDS.split(';\n')
+    connection = _open_db(db_path)
+    cursor = connection.cursor()
+    for sql_command in sql_commands:
+        cursor.execute(sql_command)
+    connection.commit()
+    return connection
+
+
+def open_or_create_db(db_path):
+    """Opens a database file or creates one if the file does not exist.
+
+    If a file exists at the given path, opens the file at that path as a
+    database and returns a connection to it. If no file exists, creates and
+    initializes a GreenPiThumb database at the given file path.
+
+    Returns:
+        A sqlite connection object for the database. The caller is responsible
+        for closing the object.
+    """
+    if os.path.exists(db_path):
+        return _open_db(db_path)
+    else:
+        return _create_db(db_path)
 
 
 class DbStoreBase(object):

@@ -1,4 +1,5 @@
 import argparse
+import contextlib
 import time
 
 import Adafruit_DHT
@@ -6,6 +7,7 @@ import Adafruit_MCP3008
 import RPi.GPIO as GPIO
 
 import clock
+import db_store
 import dht11
 import humidity_sensor
 import light_sensor
@@ -66,6 +68,9 @@ def read_wiring_config(config_filename):
 
 
 def main(args):
+    with contextlib.closing(db_store.open_or_create_db(args.data_file)):
+        # TODO(mtlynch): Do something with database here.
+        pass
     sensor_harness = SensorHarness(read_wiring_config(args.config_file))
     sensor_harness.print_readings_header()
     while True:
@@ -96,4 +101,9 @@ if __name__ == '__main__':
         help=('Time window during which GreenPiThumb will not activate its '
               'pump. Window should be in the form of a time range in 24-hour '
               'format, such as "03:15-03:45"'))
+    parser.add_argument(
+        '-d',
+        '--db_file',
+        help='Location to store GreenPiThumb database file',
+        default='greenpithumb/greenpithumb.db')
     main(parser.parse_args())
