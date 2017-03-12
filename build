@@ -8,7 +8,7 @@ set -e
 # Run unit tests and calculate code coverage.
 coverage run \
   --source greenpithumb \
-  --omit "greenpithumb/dht11/*,greenpithumb/fake_sensors.py" \
+  --omit "greenpithumb/dht11/*" \
   -m unittest discover
 
 # Run static analysis for Python bugs/cruft.
