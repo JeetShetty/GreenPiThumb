@@ -4,8 +4,10 @@ import time
 
 import Adafruit_DHT
 import Adafruit_MCP3008
+import picamera
 import RPi.GPIO as GPIO
 
+import camera_manager
 import clock
 import db_store
 import dht11
@@ -20,7 +22,7 @@ import wiring_config_parser
 class SensorHarness(object):
     """Simple container for GreenPiThumbs that polls their values and prints."""
 
-    def __init__(self, wiring_config):
+    def __init__(self, wiring_config, image_path):
         local_clock = clock.LocalClock()
         # The MCP3008 spec and Adafruit library use different naming for the
         # Raspberry Pi GPIO pins, so we translate as follows:
@@ -46,6 +48,9 @@ class SensorHarness(object):
         self._temperature_sensor = temperature_sensor.TemperatureSensor(
             self._dht11)
         self._humidity_sensor = humidity_sensor.HumiditySensor(self._dht11)
+        self._camera_manager = camera_manager.CameraManager(image_path,
+                                                            local_clock,
+                                                            picamera.PiCamera())
 
     def print_readings_header(self):
         """Print a header for sensor values to be printed in columns."""
@@ -71,7 +76,7 @@ def main(args):
     with contextlib.closing(db_store.open_or_create_db(args.data_file)):
         # TODO(mtlynch): Do something with database here.
         pass
-    sensor_harness = SensorHarness(read_wiring_config(args.config_file))
+    sensor_harness = SensorHarness(read_wiring_config(args.config_file, args.image_path))
     sensor_harness.print_readings_header()
     while True:
         sensor_harness.print_readings()
@@ -101,6 +106,12 @@ if __name__ == '__main__':
         help=('Time window during which GreenPiThumb will not activate its '
               'pump. Window should be in the form of a time range in 24-hour '
               'format, such as "03:15-03:45"'))
+    parser.add_argument(
+        '-i',
+        '--image_path',
+        type=str,
+        help='Path to folder where images will be stored',
+        default='images/')
     parser.add_argument(
         '-d',
         '--db_file',

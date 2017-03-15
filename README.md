@@ -20,7 +20,7 @@ Run this on a Raspberry Pi device:
 
 ```bash
 sudo apt-get update
-sudo apt-get install build-essential python-dev
+sudo apt-get install build-essential python-dev python-picamera
 git clone https://github.com/adafruit/Adafruit_Python_DHT.git
 cd Adafruit_Python_DHT
 python setup.py install
