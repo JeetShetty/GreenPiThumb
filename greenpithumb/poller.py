@@ -14,18 +14,23 @@ class SensorPollerBase(object):
         """
         self._local_clock = local_clock
         self._poll_interval = poll_interval
+        self._closed = threading.Event()
 
-    def _poll_forever(self):
-        """Polls, forever, at a fixed interval."""
-        while True:
+    def _poll(self):
+        """Polls at a fixed interval until caller calls close()."""
+        while not self._closed.is_set():
             self._poll_once()
             self._local_clock.wait(self._poll_interval)
 
     def start_polling_async(self):
         """Starts a new thread to begin polling."""
-        t = threading.Thread(target=self._poll_forever)
+        t = threading.Thread(target=self._poll)
         t.setDaemon(True)
         t.start()
+
+    def close(self):
+        """Stops polling."""
+        self._closed.set()
 
 
 class TemperaturePoller(SensorPollerBase):
