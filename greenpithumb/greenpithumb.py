@@ -1,6 +1,6 @@
 import argparse
 import contextlib
-import time
+import Queue
 
 import Adafruit_DHT
 import Adafruit_MCP3008
@@ -15,12 +15,14 @@ import humidity_sensor
 import light_sensor
 import moisture_sensor
 import pi_io
+import record_processor
 import temperature_sensor
 import wiring_config_parser
 
 
+# TODO(mtlynch): Rewrite this code so it's hooked up to the pollers.
 class SensorHarness(object):
-    """Simple container for GreenPiThumbs that polls their values and prints."""
+    """Simple container for GreenPiThumbs sensors."""
 
     def __init__(self, wiring_config, image_path):
         local_clock = clock.LocalClock()
@@ -52,35 +54,29 @@ class SensorHarness(object):
                                                             local_clock,
                                                             picamera.PiCamera())
 
-    def print_readings_header(self):
-        """Print a header for sensor values to be printed in columns."""
-        print 'light\tmoisture\ttemperature\thumidity'
-
-    def print_readings(self):
-        """Print sensor values in columns."""
-        light_reading = '%.1f%%' % self._light_sensor.ambient_light()
-        moisture_reading = '%.1f' % self._moisture_sensor.moisture()
-        temperature_reading = (('%.1f' % self._temperature_sensor.temperature())
-                               + u'\N{DEGREE SIGN} C')
-        humidity_reading = '%.1f' % self._humidity_sensor.humidity()
-        print '%s\t%s\t\t%s\t\t%s' % (light_reading, moisture_reading,
-                                      temperature_reading, humidity_reading)
-
 
 def read_wiring_config(config_filename):
     with open(config_filename) as config_file:
         return wiring_config_parser.parse(config_file.read())
 
 
+def create_record_processor(db_connection, record_queue):
+    cursor = db_connection.cursor()
+    return record_processor.RecordProcessor(record_queue,
+                                            db_store.SoilMoistureStore(cursor),
+                                            db_store.AmbientLightStore(cursor),
+                                            db_store.HumidityStore(cursor),
+                                            db_store.TemperatureStore(cursor),
+                                            db_store.WateringEventStore(cursor))
+
+
 def main(args):
-    with contextlib.closing(db_store.open_or_create_db(args.data_file)):
-        # TODO(mtlynch): Do something with database here.
-        pass
-    sensor_harness = SensorHarness(read_wiring_config(args.config_file, args.image_path))
-    sensor_harness.print_readings_header()
-    while True:
-        sensor_harness.print_readings()
-        time.sleep(args.poll_interval)
+    record_queue = Queue.Queue()
+    with contextlib.closing(db_store.open_or_create_db(
+            args.data_file)) as db_connection:
+        record_processor = create_record_processor(db_connection, record_queue)
+        while True:
+            record_processor.process_next_record()
 
 
 if __name__ == '__main__':
