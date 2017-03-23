@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 class MoistureSensor(object):
     """Wrapper for DHT11 moisture sensor."""
 
@@ -34,12 +39,14 @@ class MoistureSensor(object):
             self._pi_io.turn_pin_on(self._gpio_pin_1)
             self._pi_io.turn_pin_off(self._gpio_pin_2)
             moisture_one = self._adc.read_adc(self._channel)
+            logger.info('soil moisture reading (1 of 2) = %d', moisture_one)
 
             self._clock.wait(0.1)
 
             self._pi_io.turn_pin_on(self._gpio_pin_2)
             self._pi_io.turn_pin_off(self._gpio_pin_1)
             moisture_two = 1023 - self._adc.read_adc(self._channel)
+            logger.info('soil moisture reading (2 of 2) = %d', moisture_two)
 
             return (moisture_one + moisture_two) / 2
         finally:

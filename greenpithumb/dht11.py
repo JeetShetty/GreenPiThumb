@@ -1,7 +1,10 @@
 import datetime
+import logging
 import threading
 
 import pytz
+
+logger = logging.getLogger(__name__)
 
 # Maximum time a sensor reading can be used for, in seconds
 _FRESHNESS_THRESHOLD = 2
@@ -45,6 +48,11 @@ class CachingDHT11(object):
                     _FRESHNESS_THRESHOLD):
                 self._last_reading_time = now
                 self._last_reading = self._dht11_read_func()
+                logger.info('DHT11 raw reading = %s', self._last_reading)
+            else:
+                logger.info(
+                    'read DHT11 too recently, returning cached reading = %s',
+                    self._last_reading)
 
         return self._last_reading
 

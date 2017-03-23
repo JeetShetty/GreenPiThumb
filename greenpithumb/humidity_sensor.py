@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 class HumiditySensor(object):
     """Wrapper for a humidity sensor."""
 
@@ -12,4 +17,6 @@ class HumiditySensor(object):
 
     def humidity(self):
         """Returns relative humidity level."""
-        return self._dht11.humidity()
+        humidity = self._dht11.humidity()
+        logger.info('humidity reading = %.1f', humidity)
+        return humidity

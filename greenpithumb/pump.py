@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
 # Pump rate in mL/s (4.3 L/min)
 _PUMP_RATE_ML_PER_SEC = 4300.0 / 60.0
 
@@ -31,11 +35,14 @@ class Pump(object):
         elif amount_ml < 0.0:
             raise ValueError('Cannot pump a negative amount of water')
         else:
+            logger.info('turning pump on (with GPIO pin %d)', self._pump_pin)
             self._pi_io.turn_pin_on(self._pump_pin)
 
             wait_time_seconds = amount_ml / _PUMP_RATE_ML_PER_SEC
             self._clock.wait(wait_time_seconds)
 
+            logger.info('turning pump off (with GPIO pin %d)', self._pump_pin)
             self._pi_io.turn_pin_off(self._pump_pin)
+            logger.info('pumped %.f mL of water', amount_ml)
 
         return

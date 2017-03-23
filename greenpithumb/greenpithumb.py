@@ -1,5 +1,6 @@
 import argparse
 import contextlib
+import logging
 import Queue
 
 import Adafruit_DHT
@@ -18,6 +19,8 @@ import pi_io
 import record_processor
 import temperature_sensor
 import wiring_config_parser
+
+logger = logging.getLogger(__name__)
 
 
 # TODO(mtlynch): Rewrite this code so it's hooked up to the pollers.
@@ -56,6 +59,7 @@ class SensorHarness(object):
 
 
 def read_wiring_config(config_filename):
+    logger.info('reading wiring config at "%s"', config_filename)
     with open(config_filename) as config_file:
         return wiring_config_parser.parse(config_file.read())
 
@@ -70,7 +74,24 @@ def create_record_processor(db_connection, record_queue):
         db_store.WateringEventStore(db_connection))
 
 
+def configure_logging(verbose):
+    """Configure the root logger for log output."""
+    root_logger = logging.getLogger()
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter(
+        '%(asctime)s %(name)-15s %(levelname)-4s %(message)s',
+        '%Y-%m-%d %H:%M:%S')
+    handler.setFormatter(formatter)
+    root_logger.addHandler(handler)
+    if verbose:
+        root_logger.setLevel(logging.INFO)
+    else:
+        root_logger.setLevel(logging.WARNING)
+
+
 def main(args):
+    configure_logging(args.verbose)
+    logger.info('starting greenpithumb')
     record_queue = Queue.Queue()
     with contextlib.closing(db_store.open_or_create_db(
             args.db_file)) as db_connection:
@@ -113,4 +134,6 @@ if __name__ == '__main__':
         '--db_file',
         help='Location to store GreenPiThumb database file',
         default='greenpithumb/greenpithumb.db')
+    parser.add_argument(
+        '-v', '--verbose', action='store_true', help='Use verbose logging')
     main(parser.parse_args())

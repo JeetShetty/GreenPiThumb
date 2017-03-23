@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
 _LIGHT_SENSOR_MIN_VALUE = 0
 _LIGHT_SENSOR_MAX_VALUE = 1023
 
@@ -32,6 +36,7 @@ class LightSensor(object):
                 expected value.
         """
         ambient_light = self._adc.read_adc(self._channel)
+        logger.info('ambient light reading = %d', ambient_light)
 
         if ambient_light < _LIGHT_SENSOR_MIN_VALUE:
             raise LightSensorLowError(

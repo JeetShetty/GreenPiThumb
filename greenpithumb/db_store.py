@@ -1,8 +1,11 @@
 import collections
+import logging
 import os
 import sqlite3
 
 from dateutil import parser
+
+logger = logging.getLogger(__name__)
 
 # For each record, timestamp is a datetime representing the time of the reading
 # or event.
@@ -63,6 +66,7 @@ def _serialize_timestamp(timestamp):
 
 
 def _open_db(db_path):
+    logger.info('opening existing greenpithumb database at "%s"', db_path)
     return sqlite3.connect(db_path)
 
 
@@ -79,6 +83,7 @@ def _create_db(db_path):
         A sqlite connection object for the database. The caller is responsible
         for closing the object.
     """
+    logger.info('creating new greenpithumb database at "%s"', db_path)
     sql_commands = _CREATE_TABLE_COMMANDS.split(';\n')
     connection = _open_db(db_path)
     cursor = connection.cursor()
