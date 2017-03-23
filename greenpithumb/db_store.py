@@ -108,13 +108,14 @@ def open_or_create_db(db_path):
 class DbStoreBase(object):
     """Base class for storing information in a database."""
 
-    def __init__(self, cursor):
+    def __init__(self, connection):
         """Creates a new DbStoreBase object for storing information.
 
         Args:
-            cursor: SQLite database cursor.
+            connection: SQLite database connection.
         """
-        self._cursor = cursor
+        self._connection = connection
+        self._cursor = connection.cursor()
 
 
 class SoilMoistureStore(DbStoreBase):
@@ -129,6 +130,7 @@ class SoilMoistureStore(DbStoreBase):
         self._cursor.execute('INSERT INTO soil_moisture VALUES (?, ?)', (
             _serialize_timestamp(soil_moisture_record.timestamp),
             soil_moisture_record.soil_moisture))
+        self._connection.commit()
 
     def latest_soil_moisture(self):
         """Returns the most recent soil moisture reading."""
@@ -169,6 +171,7 @@ class AmbientLightStore(DbStoreBase):
         self._cursor.execute('INSERT INTO ambient_light VALUES (?, ?)', (
             _serialize_timestamp(ambient_light_record.timestamp),
             ambient_light_record.ambient_light))
+        self._connection.commit()
 
     def retrieve_ambient_light(self):
         """Retrieves timestamp and ambient light readings.
@@ -196,6 +199,7 @@ class HumidityStore(DbStoreBase):
         self._cursor.execute('INSERT INTO ambient_humidity VALUES (?, ?)',
                              (_serialize_timestamp(humidity_record.timestamp),
                               humidity_record.humidity))
+        self._connection.commit()
 
     def retrieve_humidity(self):
         """Retrieves timestamp and relative humidity readings.
@@ -223,6 +227,7 @@ class TemperatureStore(DbStoreBase):
         self._cursor.execute('INSERT INTO temperature VALUES (?, ?)', (
             _serialize_timestamp(temperature_record.timestamp),
             temperature_record.temperature))
+        self._connection.commit()
 
     def retrieve_temperature(self):
         """Retrieves timestamp and temperature(C) readings.
@@ -250,6 +255,7 @@ class WateringEventStore(DbStoreBase):
         self._cursor.execute('INSERT INTO watering_events VALUES (?, ?)', (
             _serialize_timestamp(watering_event_record.timestamp),
             watering_event_record.water_pumped))
+        self._connection.commit()
 
     def retrieve_water_pumped(self):
         """Retrieves timestamp and volume of water pumped(in mL).

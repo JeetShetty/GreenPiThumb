@@ -61,13 +61,13 @@ def read_wiring_config(config_filename):
 
 
 def create_record_processor(db_connection, record_queue):
-    cursor = db_connection.cursor()
-    return record_processor.RecordProcessor(record_queue,
-                                            db_store.SoilMoistureStore(cursor),
-                                            db_store.AmbientLightStore(cursor),
-                                            db_store.HumidityStore(cursor),
-                                            db_store.TemperatureStore(cursor),
-                                            db_store.WateringEventStore(cursor))
+    return record_processor.RecordProcessor(
+        record_queue,
+        db_store.SoilMoistureStore(db_connection),
+        db_store.AmbientLightStore(db_connection),
+        db_store.HumidityStore(db_connection),
+        db_store.TemperatureStore(db_connection),
+        db_store.WateringEventStore(db_connection))
 
 
 def main(args):
