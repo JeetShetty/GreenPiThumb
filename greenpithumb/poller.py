@@ -6,6 +6,31 @@ import db_store
 logger = logging.getLogger(__name__)
 
 
+class SensorPollerFactory(object):
+    """Factory to simplify the semantics of creating pollers."""
+
+    def __init__(self, local_clock, poll_interval, record_queue):
+        self._local_clock = local_clock
+        self._poll_interval = poll_interval
+        self._record_queue = record_queue
+
+    def create_temperature_poller(self, temperature_sensor):
+        return TemperaturePoller(self._local_clock, self._poll_interval,
+                                 temperature_sensor, self._record_queue)
+
+    def create_humidity_poller(self, humidity_sensor):
+        return HumidityPoller(self._local_clock, self._poll_interval,
+                              humidity_sensor, self._record_queue)
+
+    def create_moisture_poller(self, moisture_sensor):
+        return MoisturePoller(self._local_clock, self._poll_interval,
+                              moisture_sensor, self._record_queue)
+
+    def create_ambient_light_poller(self, light_sensor):
+        return AmbientLightPoller(self._local_clock, self._poll_interval,
+                                  light_sensor, self._record_queue)
+
+
 class SensorPollerBase(object):
     """Base class for sensor polling."""
 
