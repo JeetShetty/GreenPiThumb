@@ -73,7 +73,7 @@ def create_record_processor(db_connection, record_queue):
 def main(args):
     record_queue = Queue.Queue()
     with contextlib.closing(db_store.open_or_create_db(
-            args.data_file)) as db_connection:
+            args.db_file)) as db_connection:
         record_processor = create_record_processor(db_connection, record_queue)
         while True:
             record_processor.process_next_record()
