@@ -93,7 +93,7 @@ if __name__ == '__main__':
         '-c',
         '--config_file',
         help='Wiring config file',
-        default='wiring_config.ini')
+        default='greenpithumb/wiring_config.ini')
     parser.add_argument(
         '-s',
         '--sleep_window',
