@@ -126,7 +126,7 @@ class DbStoreBase(object):
 class SoilMoistureStore(DbStoreBase):
     """Stores and retrieves timestamp and soil moisture readings."""
 
-    def store_soil_moisture(self, soil_moisture_record):
+    def insert(self, soil_moisture_record):
         """Inserts moisture and timestamp info into an SQLite database.
 
         Args:
@@ -137,7 +137,7 @@ class SoilMoistureStore(DbStoreBase):
             soil_moisture_record.soil_moisture))
         self._connection.commit()
 
-    def latest_soil_moisture(self):
+    def get_latest(self):
         """Returns the most recent soil moisture reading."""
         query = '''SELECT soil_moisture FROM soil_moisture
                 ORDER BY timestamp DESC
@@ -150,7 +150,7 @@ class SoilMoistureStore(DbStoreBase):
         else:
             return results[0][0]
 
-    def retrieve_soil_moisture(self):
+    def get(self):
         """Retrieves timestamp and soil moisture readings.
 
         Returns:
@@ -167,7 +167,7 @@ class SoilMoistureStore(DbStoreBase):
 class AmbientLightStore(DbStoreBase):
     """Stores timestamp and ambient light readings."""
 
-    def store_ambient_light(self, ambient_light_record):
+    def insert(self, ambient_light_record):
         """Inserts ambient light and timestamp info into an SQLite database.
 
         Args:
@@ -178,7 +178,7 @@ class AmbientLightStore(DbStoreBase):
             ambient_light_record.ambient_light))
         self._connection.commit()
 
-    def retrieve_ambient_light(self):
+    def get(self):
         """Retrieves timestamp and ambient light readings.
 
         Returns:
@@ -195,7 +195,7 @@ class AmbientLightStore(DbStoreBase):
 class HumidityStore(DbStoreBase):
     """Stores timestamp and ambient humidity readings."""
 
-    def store_humidity(self, humidity_record):
+    def insert(self, humidity_record):
         """Inserts humidity and timestamp info into an SQLite database.
 
         Args:
@@ -206,7 +206,7 @@ class HumidityStore(DbStoreBase):
                               humidity_record.humidity))
         self._connection.commit()
 
-    def retrieve_humidity(self):
+    def get(self):
         """Retrieves timestamp and relative humidity readings.
 
         Returns:
@@ -223,7 +223,7 @@ class HumidityStore(DbStoreBase):
 class TemperatureStore(DbStoreBase):
     """Stores timestamp and ambient temperature readings."""
 
-    def store_temperature(self, temperature_record):
+    def insert(self, temperature_record):
         """Inserts temperature and timestamp info into an SQLite database.
 
         Args:
@@ -234,7 +234,7 @@ class TemperatureStore(DbStoreBase):
             temperature_record.temperature))
         self._connection.commit()
 
-    def retrieve_temperature(self):
+    def get(self):
         """Retrieves timestamp and temperature(C) readings.
 
         Returns:
@@ -251,7 +251,7 @@ class TemperatureStore(DbStoreBase):
 class WateringEventStore(DbStoreBase):
     """Stores timestamp and volume of water pumped to plant."""
 
-    def store_water_pumped(self, watering_event_record):
+    def insert(self, watering_event_record):
         """Inserts water volume and timestamp info into an SQLite database.
 
         Args:
@@ -262,7 +262,7 @@ class WateringEventStore(DbStoreBase):
             watering_event_record.water_pumped))
         self._connection.commit()
 
-    def retrieve_water_pumped(self):
+    def get(self):
         """Retrieves timestamp and volume of water pumped(in mL).
 
         Returns:

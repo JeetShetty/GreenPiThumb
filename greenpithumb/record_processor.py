@@ -33,15 +33,15 @@ class RecordProcessor(object):
         """
         record = self._record_queue.get()
         if isinstance(record, db_store.SoilMoistureRecord):
-            self._soil_moisture_store.store_soil_moisture(record)
+            self._soil_moisture_store.insert(record)
         elif isinstance(record, db_store.AmbientLightRecord):
-            self._ambient_light_store.store_ambient_light(record)
+            self._ambient_light_store.insert(record)
         elif isinstance(record, db_store.HumidityRecord):
-            self._humidity_store.store_humidity(record)
+            self._humidity_store.insert(record)
         elif isinstance(record, db_store.TemperatureRecord):
-            self._temperature_store.store_temperature(record)
+            self._temperature_store.insert(record)
         elif isinstance(record, db_store.WateringEventRecord):
-            self._watering_event_store.store_water_pumped(record)
+            self._watering_event_store.insert(record)
         else:
             raise UnsupportedRecordError('Unrecognized record type: %s' %
                                          str(record))

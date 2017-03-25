@@ -33,8 +33,7 @@ class RecordProcessorTest(unittest.TestCase):
             soil_moisture=300)
         self.record_queue.put(record)
         self.processor.process_next_record()
-        self.mock_soil_moisture_store.store_soil_moisture.assert_called_with(
-            record)
+        self.mock_soil_moisture_store.insert.assert_called_with(record)
 
     def test_process_ambient_light_record(self):
         record = db_store.AmbientLightRecord(
@@ -43,8 +42,7 @@ class RecordProcessorTest(unittest.TestCase):
             ambient_light=29.2)
         self.record_queue.put(record)
         self.processor.process_next_record()
-        self.mock_ambient_light_store.store_ambient_light.assert_called_with(
-            record)
+        self.mock_ambient_light_store.insert.assert_called_with(record)
 
     def test_process_humidity_record(self):
         record = db_store.HumidityRecord(
@@ -53,7 +51,7 @@ class RecordProcessorTest(unittest.TestCase):
             humidity=184.5)
         self.record_queue.put(record)
         self.processor.process_next_record()
-        self.mock_humidity_store.store_humidity.assert_called_with(record)
+        self.mock_humidity_store.insert.assert_called_with(record)
 
     def test_process_temperature_record(self):
         record = db_store.TemperatureRecord(
@@ -62,7 +60,7 @@ class RecordProcessorTest(unittest.TestCase):
             temperature=32.9)
         self.record_queue.put(record)
         self.processor.process_next_record()
-        self.mock_temperature_store.store_temperature.assert_called_with(record)
+        self.mock_temperature_store.insert.assert_called_with(record)
 
     def test_process_watering_event_record(self):
         record = db_store.WateringEventRecord(
@@ -71,8 +69,7 @@ class RecordProcessorTest(unittest.TestCase):
             water_pumped=15.6)
         self.record_queue.put(record)
         self.processor.process_next_record()
-        self.mock_watering_event_store.store_water_pumped.assert_called_with(
-            record)
+        self.mock_watering_event_store.insert.assert_called_with(record)
 
     def test_rejects_unsupported_record(self):
         record = 'dummy invalid record'
