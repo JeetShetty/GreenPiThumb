@@ -28,6 +28,7 @@ python setup.py install
 cd ..
 git clone https://github.com/JeetShetty/GreenPiThumb.git
 cd GreenPiThumb
+sudo pip install picamera
 sudo pip install -r requirements.txt
 cp greenpithumb/wiring_config.ini.example greenpithumb/wiring_config.ini
 ```
