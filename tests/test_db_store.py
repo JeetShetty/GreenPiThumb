@@ -77,18 +77,6 @@ class StoreClassesTest(unittest.TestCase):
                 '2016-07-23T10:51:09.928000+00:00', 300))
         self.mock_connection.commit.assert_called_once()
 
-    def test_get_latest_soil_moisture(self):
-        store = db_store.SoilMoistureStore(self.mock_connection)
-        self.mock_cursor.fetchall.return_value = [(300,)]
-        moisture = store.get_latest()
-        self.assertEqual(300, moisture)
-
-    def test_get_latest_soil_moisture_empty_database(self):
-        store = db_store.SoilMoistureStore(self.mock_connection)
-        self.mock_cursor.fetchall.return_value = []
-        moisture = store.get_latest()
-        self.assertIsNone(moisture)
-
     def test_get_soil_moisture(self):
         store = db_store.SoilMoistureStore(self.mock_connection)
         self.mock_cursor.fetchall.return_value = [

@@ -43,17 +43,26 @@ def make_sensor_pollers(poll_interval, wiring_config, record_queue):
     poller_factory = poller.SensorPollerFactory(local_clock, poll_interval,
                                                 record_queue)
 
+    # Temporary PumpManager class until we finish the real class.
+    class DummyPumpManager(object):
+
+        def pump_if_needed(self, _):
+            return 0
+
+    pump_manager = DummyPumpManager()
+
     return [
         poller_factory.create_temperature_poller(
             temperature_sensor.TemperatureSensor(local_dht11)),
         poller_factory.create_humidity_poller(
             humidity_sensor.HumiditySensor(local_dht11)),
-        poller_factory.create_moisture_poller(
+        poller_factory.create_soil_watering_poller(
             moisture_sensor.MoistureSensor(
                 adc,
                 pi_io.IO(GPIO), wiring_config.adc_channels.soil_moisture_sensor,
                 wiring_config.gpio_pins.soil_moisture_1,
-                wiring_config.gpio_pins.soil_moisture_2, local_clock)),
+                wiring_config.gpio_pins.soil_moisture_2, local_clock),
+            pump_manager),
         poller_factory.create_ambient_light_poller(
             light_sensor.LightSensor(adc,
                                      wiring_config.adc_channels.light_sensor)),

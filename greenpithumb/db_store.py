@@ -137,19 +137,6 @@ class SoilMoistureStore(DbStoreBase):
             soil_moisture_record.soil_moisture))
         self._connection.commit()
 
-    def get_latest(self):
-        """Returns the most recent soil moisture reading."""
-        query = '''SELECT soil_moisture FROM soil_moisture
-                ORDER BY timestamp DESC
-                LIMIT 1;'''
-
-        self._cursor.execute(query)
-        results = self._cursor.fetchall()
-        if not results:
-            return None
-        else:
-            return results[0][0]
-
     def get(self):
         """Retrieves timestamp and soil moisture readings.
 
