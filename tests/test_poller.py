@@ -23,12 +23,13 @@ class PollerClassesTest(unittest.TestCase):
         self.mock_sensor = mock.Mock()
         self.mock_store = mock.Mock()
         self.record_queue = Queue.Queue()
+        self.factory = poller.SensorPollerFactory(
+            self.mock_local_clock, POLL_INTERVAL, self.record_queue)
 
     def test_temperature_poller(self):
         with contextlib.closing(
-                poller.TemperaturePoller(
-                    self.mock_local_clock, POLL_INTERVAL, self.mock_sensor,
-                    self.record_queue)) as temperature_poller:
+                self.factory.create_temperature_poller(
+                    self.mock_sensor)) as temperature_poller:
             self.mock_local_clock.now.return_value = TIMESTAMP_A
             self.mock_local_clock.wait.side_effect = (
                 lambda _: self.clock_wait_event.set())
@@ -45,9 +46,8 @@ class PollerClassesTest(unittest.TestCase):
 
     def test_humidity_poller(self):
         with contextlib.closing(
-                poller.HumidityPoller(self.mock_local_clock, POLL_INTERVAL,
-                                      self.mock_sensor,
-                                      self.record_queue)) as humidity_poller:
+                self.factory.create_humidity_poller(
+                    self.mock_sensor)) as humidity_poller:
             self.mock_local_clock.now.return_value = TIMESTAMP_A
             self.mock_local_clock.wait.side_effect = (
                 lambda _: self.clock_wait_event.set())
@@ -64,9 +64,8 @@ class PollerClassesTest(unittest.TestCase):
 
     def test_ambient_light_poller(self):
         with contextlib.closing(
-                poller.AmbientLightPoller(
-                    self.mock_local_clock, POLL_INTERVAL, self.mock_sensor,
-                    self.record_queue)) as ambient_light_poller:
+                self.factory.create_ambient_light_poller(
+                    self.mock_sensor)) as ambient_light_poller:
             self.mock_local_clock.now.return_value = TIMESTAMP_A
             self.mock_local_clock.wait.side_effect = (
                 lambda _: self.clock_wait_event.set())
@@ -90,6 +89,8 @@ class SoilWateringPollerTest(unittest.TestCase):
         self.mock_pump_manager = mock.Mock()
         self.mock_soil_moisture_sensor = mock.Mock()
         self.record_queue = Queue.Queue()
+        self.factory = poller.SensorPollerFactory(
+            self.mock_local_clock, POLL_INTERVAL, self.record_queue)
 
     def _stop_poller(self, poller):
         poller.close()
@@ -97,10 +98,9 @@ class SoilWateringPollerTest(unittest.TestCase):
 
     def test_soil_watering_poller_when_pump_run(self):
         with contextlib.closing(
-                poller.SoilWateringPoller(
-                    self.mock_local_clock, POLL_INTERVAL,
-                    self.mock_soil_moisture_sensor, self.mock_pump_manager,
-                    self.record_queue)) as soil_watering_poller:
+                self.factory.create_soil_watering_poller(
+                    self.mock_soil_moisture_sensor,
+                    self.mock_pump_manager)) as soil_watering_poller:
             self.mock_local_clock.now.return_value = TIMESTAMP_A
             self.mock_local_clock.wait.side_effect = (
                 lambda _: self._stop_poller(soil_watering_poller))
@@ -127,10 +127,9 @@ class SoilWateringPollerTest(unittest.TestCase):
 
     def test_soil_watering_poller_when_pump_not_run(self):
         with contextlib.closing(
-                poller.SoilWateringPoller(
-                    self.mock_local_clock, POLL_INTERVAL,
-                    self.mock_soil_moisture_sensor, self.mock_pump_manager,
-                    self.record_queue)) as soil_watering_poller:
+                self.factory.create_soil_watering_poller(
+                    self.mock_soil_moisture_sensor,
+                    self.mock_pump_manager)) as soil_watering_poller:
             self.mock_local_clock.now.return_value = TIMESTAMP_A
             self.mock_local_clock.wait.side_effect = (
                 lambda _: self._stop_poller(soil_watering_poller))
@@ -155,9 +154,11 @@ class CameraPollerTest(unittest.TestCase):
         clock_wait_event = threading.Event()
         mock_local_clock = mock.Mock()
         mock_camera_manager = mock.Mock()
+        factory = poller.SensorPollerFactory(
+            mock_local_clock, POLL_INTERVAL, record_queue=None)
         with contextlib.closing(
-                poller.CameraPoller(mock_local_clock, POLL_INTERVAL,
-                                    mock_camera_manager)) as camera_poller:
+                factory.create_camera_poller(
+                    mock_camera_manager)) as camera_poller:
             mock_local_clock.wait.side_effect = lambda _: clock_wait_event.set()
 
             camera_poller.start_polling_async()
