@@ -3,7 +3,7 @@ import logging
 import os
 import sqlite3
 
-from dateutil import parser
+from dateutil import parser as date_parser
 
 logger = logging.getLogger(__name__)
 
@@ -110,11 +110,11 @@ def open_or_create_db(db_path):
         return _create_db(db_path)
 
 
-class DbStoreBase(object):
+class _DbStoreBase(object):
     """Base class for storing information in a database."""
 
     def __init__(self, connection):
-        """Creates a new DbStoreBase object for storing information.
+        """Creates a new _DbStoreBase object for storing information.
 
         Args:
             connection: SQLite database connection.
@@ -122,8 +122,36 @@ class DbStoreBase(object):
         self._connection = connection
         self._cursor = connection.cursor()
 
+    def _do_insert(self, sql, timestamp, value):
+        """Executes and commits a SQL insert command.
 
-class SoilMoistureStore(DbStoreBase):
+        Args:
+          sql: SQL query string for the insert command.
+          timestamp: datetime instance representing the record timestamp.
+          value: Value to insert for the record.
+        """
+        self._cursor.execute(sql, (_serialize_timestamp(timestamp), value))
+        self._connection.commit()
+
+    def _do_get(self, sql, record_type):
+        """Executes a SQL select query and returns the results.
+
+        Args:
+          sql: SQL select query string.
+          record_type: The record type to parse the SQL results into.
+
+        Returns:
+          A list of database records corresponding to the select query.
+        """
+        self._cursor.execute(sql)
+        data = []
+        for row in self._cursor.fetchall():
+            data.append((date_parser.parse(row[0]), row[1]))
+        typed_data = map(record_type._make, data)
+        return typed_data
+
+
+class SoilMoistureStore(_DbStoreBase):
     """Stores and retrieves timestamp and soil moisture readings."""
 
     def insert(self, soil_moisture_record):
@@ -132,10 +160,9 @@ class SoilMoistureStore(DbStoreBase):
         Args:
             soil_moisture_record: Moisture record to store.
         """
-        self._cursor.execute('INSERT INTO soil_moisture VALUES (?, ?)', (
-            _serialize_timestamp(soil_moisture_record.timestamp),
-            soil_moisture_record.soil_moisture))
-        self._connection.commit()
+        self._do_insert('INSERT INTO soil_moisture VALUES (?, ?)',
+                        soil_moisture_record.timestamp,
+                        soil_moisture_record.soil_moisture)
 
     def get(self):
         """Retrieves timestamp and soil moisture readings.
@@ -143,15 +170,10 @@ class SoilMoistureStore(DbStoreBase):
         Returns:
             A list of objects with 'timestamp' and 'soil_moisture' fields.
         """
-        self._cursor.execute('SELECT * FROM soil_moisture')
-        data = []
-        for row in self._cursor.fetchall():
-            data.append((parser.parse(row[0]), row[1]))
-        soil_moisture_data = map(SoilMoistureRecord._make, data)
-        return soil_moisture_data
+        return self._do_get('SELECT * FROM soil_moisture', SoilMoistureRecord)
 
 
-class AmbientLightStore(DbStoreBase):
+class AmbientLightStore(_DbStoreBase):
     """Stores timestamp and ambient light readings."""
 
     def insert(self, ambient_light_record):
@@ -160,10 +182,9 @@ class AmbientLightStore(DbStoreBase):
         Args:
             ambient_light_record: Ambient light record to store.
         """
-        self._cursor.execute('INSERT INTO ambient_light VALUES (?, ?)', (
-            _serialize_timestamp(ambient_light_record.timestamp),
-            ambient_light_record.ambient_light))
-        self._connection.commit()
+        self._do_insert('INSERT INTO ambient_light VALUES (?, ?)',
+                        ambient_light_record.timestamp,
+                        ambient_light_record.ambient_light)
 
     def get(self):
         """Retrieves timestamp and ambient light readings.
@@ -171,15 +192,10 @@ class AmbientLightStore(DbStoreBase):
         Returns:
             A list of objects with 'timestamp' and 'ambient_light' fields.
         """
-        self._cursor.execute('SELECT * FROM ambient_light')
-        data = []
-        for row in self._cursor.fetchall():
-            data.append((parser.parse(row[0]), row[1]))
-        ambient_light_data = map(AmbientLightRecord._make, data)
-        return ambient_light_data
+        return self._do_get('SELECT * FROM ambient_light', AmbientLightRecord)
 
 
-class HumidityStore(DbStoreBase):
+class HumidityStore(_DbStoreBase):
     """Stores timestamp and ambient humidity readings."""
 
     def insert(self, humidity_record):
@@ -188,10 +204,8 @@ class HumidityStore(DbStoreBase):
         Args:
             humidity_record: Humidity record to store.
         """
-        self._cursor.execute('INSERT INTO ambient_humidity VALUES (?, ?)',
-                             (_serialize_timestamp(humidity_record.timestamp),
-                              humidity_record.humidity))
-        self._connection.commit()
+        self._do_insert('INSERT INTO ambient_humidity VALUES (?, ?)',
+                        humidity_record.timestamp, humidity_record.humidity)
 
     def get(self):
         """Retrieves timestamp and relative humidity readings.
@@ -199,15 +213,10 @@ class HumidityStore(DbStoreBase):
         Returns:
             A list of objects with 'timestamp' and 'humidity' fields.
         """
-        self._cursor.execute('SELECT * FROM ambient_humidity')
-        data = []
-        for row in self._cursor.fetchall():
-            data.append((parser.parse(row[0]), row[1]))
-        humidity_data = map(HumidityRecord._make, data)
-        return humidity_data
+        return self._do_get('SELECT * FROM ambient_humidity', HumidityRecord)
 
 
-class TemperatureStore(DbStoreBase):
+class TemperatureStore(_DbStoreBase):
     """Stores timestamp and ambient temperature readings."""
 
     def insert(self, temperature_record):
@@ -216,10 +225,9 @@ class TemperatureStore(DbStoreBase):
         Args:
             temperature_record: Temperature record to store.
         """
-        self._cursor.execute('INSERT INTO temperature VALUES (?, ?)', (
-            _serialize_timestamp(temperature_record.timestamp),
-            temperature_record.temperature))
-        self._connection.commit()
+        self._do_insert('INSERT INTO temperature VALUES (?, ?)',
+                        temperature_record.timestamp,
+                        temperature_record.temperature)
 
     def get(self):
         """Retrieves timestamp and temperature(C) readings.
@@ -227,15 +235,10 @@ class TemperatureStore(DbStoreBase):
         Returns:
             A list of objects with 'timestamp' and 'temperature' fields.
         """
-        self._cursor.execute('SELECT * FROM temperature')
-        data = []
-        for row in self._cursor.fetchall():
-            data.append((parser.parse(row[0]), row[1]))
-        temperature_data = map(TemperatureRecord._make, data)
-        return temperature_data
+        return self._do_get('SELECT * FROM temperature', TemperatureRecord)
 
 
-class WateringEventStore(DbStoreBase):
+class WateringEventStore(_DbStoreBase):
     """Stores timestamp and volume of water pumped to plant."""
 
     def insert(self, watering_event_record):
@@ -244,10 +247,9 @@ class WateringEventStore(DbStoreBase):
         Args:
             watering_event_record: Watering event record to store.
         """
-        self._cursor.execute('INSERT INTO watering_events VALUES (?, ?)', (
-            _serialize_timestamp(watering_event_record.timestamp),
-            watering_event_record.water_pumped))
-        self._connection.commit()
+        self._do_insert('INSERT INTO watering_events VALUES (?, ?)',
+                        watering_event_record.timestamp,
+                        watering_event_record.water_pumped)
 
     def get(self):
         """Retrieves timestamp and volume of water pumped(in mL).
@@ -255,9 +257,5 @@ class WateringEventStore(DbStoreBase):
         Returns:
             A list of objects with 'timestamp' and 'water_pumped' fields.
         """
-        self._cursor.execute('SELECT * FROM watering_events')
-        data = []
-        for row in self._cursor.fetchall():
-            data.append((parser.parse(row[0]), row[1]))
-        watering_event_data = map(WateringEventRecord._make, data)
-        return watering_event_data
+        return self._do_get('SELECT * FROM watering_events',
+                            WateringEventRecord)
