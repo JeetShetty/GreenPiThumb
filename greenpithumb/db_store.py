@@ -1,9 +1,10 @@
 import collections
+import datetime
 import logging
 import os
 import sqlite3
 
-from dateutil import parser as date_parser
+import pytz
 
 logger = logging.getLogger(__name__)
 
@@ -52,17 +53,13 @@ CREATE TABLE watering_events
 );
 """
 
+# Format to store timestamps to database (assumes timestamp is in UTC) in format
+# of YYYY-MM-DDTHH:MM:SSZ (ISO 8601 format)
+_TIMESTAMP_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
-def _serialize_timestamp(timestamp):
-    """Converts a timestamp to a string.
 
-    Args:
-        timestamp: Timestamp as a datetime object.
-
-    Returns:
-        Timestamp as a string in ISO 8601 format.
-    """
-    return timestamp.isoformat('T')
+def _timestamp_to_utc(timestamp):
+    return timestamp.replace(tzinfo=timestamp.tzinfo).astimezone(pytz.utc)
 
 
 def _open_db(db_path):
@@ -130,7 +127,9 @@ class _DbStoreBase(object):
           timestamp: datetime instance representing the record timestamp.
           value: Value to insert for the record.
         """
-        self._cursor.execute(sql, (_serialize_timestamp(timestamp), value))
+        timestamp_utc = _timestamp_to_utc(timestamp)
+        self._cursor.execute(sql,
+                             (timestamp_utc.strftime(_TIMESTAMP_FORMAT), value))
         self._connection.commit()
 
     def _do_get(self, sql, record_type):
@@ -146,7 +145,9 @@ class _DbStoreBase(object):
         self._cursor.execute(sql)
         data = []
         for row in self._cursor.fetchall():
-            data.append((date_parser.parse(row[0]), row[1]))
+            timestamp = datetime.datetime.strptime(
+                row[0], _TIMESTAMP_FORMAT).replace(tzinfo=pytz.utc)
+            data.append((timestamp, row[1]))
         typed_data = map(record_type._make, data)
         return typed_data
 
