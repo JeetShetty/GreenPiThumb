@@ -10,91 +10,98 @@ import pytz
 from greenpithumb import db_store
 from greenpithumb import poller
 
-TEST_TIMEOUT_SECONDS = 3.0
+TEST_TIMEOUT_SECONDS = 1.5
+POLL_INTERVAL = 15
 TIMESTAMP_A = datetime.datetime(2016, 7, 23, 10, 51, 9, 928000, tzinfo=pytz.utc)
-POLL_INTERVAL = 1
+# TIMESTAMP_B is on the poll interval boundary immediately after TIMESTAMP_A.
+TIMESTAMP_B = datetime.datetime(2016, 7, 23, 10, 51, 15, 0, tzinfo=pytz.utc)
 
 
-class PollerClassesTest(unittest.TestCase):
+class PollerTest(unittest.TestCase):
 
     def setUp(self):
         self.clock_wait_event = threading.Event()
         self.mock_local_clock = mock.Mock()
+        self.mock_local_clock.wait.side_effect = (
+            lambda _: self.clock_wait_event.set())
         self.mock_sensor = mock.Mock()
         self.mock_store = mock.Mock()
         self.record_queue = Queue.Queue()
         self.factory = poller.SensorPollerFactory(
             self.mock_local_clock, POLL_INTERVAL, self.record_queue)
 
+    def block_until_clock_wait_call(self):
+        """Blocks until the clock's wait method is called or test times out."""
+        self.clock_wait_event.wait(TEST_TIMEOUT_SECONDS)
+        self.clock_wait_event.clear()
+
+
+class SimplePollerClassesTest(PollerTest):
+
     def test_temperature_poller(self):
         with contextlib.closing(
                 self.factory.create_temperature_poller(
                     self.mock_sensor)) as temperature_poller:
             self.mock_local_clock.now.return_value = TIMESTAMP_A
-            self.mock_local_clock.wait.side_effect = (
-                lambda _: self.clock_wait_event.set())
             self.mock_sensor.temperature.return_value = 21.0
 
             temperature_poller.start_polling_async()
-            self.clock_wait_event.wait(TEST_TIMEOUT_SECONDS)
+            self.block_until_clock_wait_call()
+            self.mock_local_clock.now.return_value = TIMESTAMP_B
+            self.block_until_clock_wait_call()
 
         self.assertEqual(
             db_store.TemperatureRecord(
-                timestamp=TIMESTAMP_A, temperature=21.0),
+                timestamp=TIMESTAMP_B, temperature=21.0),
             self.record_queue.get(block=True, timeout=TEST_TIMEOUT_SECONDS))
-        self.mock_local_clock.wait.assert_called_with(POLL_INTERVAL)
+        # Should be no more items in the queue.
+        self.assertTrue(self.record_queue.empty())
 
     def test_humidity_poller(self):
         with contextlib.closing(
                 self.factory.create_humidity_poller(
                     self.mock_sensor)) as humidity_poller:
             self.mock_local_clock.now.return_value = TIMESTAMP_A
-            self.mock_local_clock.wait.side_effect = (
-                lambda _: self.clock_wait_event.set())
             self.mock_sensor.humidity.return_value = 50.0
 
             humidity_poller.start_polling_async()
-            self.clock_wait_event.wait(TEST_TIMEOUT_SECONDS)
+            self.block_until_clock_wait_call()
+            self.mock_local_clock.now.return_value = TIMESTAMP_B
+            self.block_until_clock_wait_call()
 
         self.assertEqual(
             db_store.HumidityRecord(
-                timestamp=TIMESTAMP_A, humidity=50.0),
+                timestamp=TIMESTAMP_B, humidity=50.0),
             self.record_queue.get(block=True, timeout=TEST_TIMEOUT_SECONDS))
-        self.mock_local_clock.wait.assert_called_with(POLL_INTERVAL)
+        # Should be no more items in the queue.
+        self.assertTrue(self.record_queue.empty())
 
     def test_ambient_light_poller(self):
         with contextlib.closing(
                 self.factory.create_ambient_light_poller(
                     self.mock_sensor)) as ambient_light_poller:
             self.mock_local_clock.now.return_value = TIMESTAMP_A
-            self.mock_local_clock.wait.side_effect = (
-                lambda _: self.clock_wait_event.set())
             self.mock_sensor.ambient_light.return_value = 50.0
 
             ambient_light_poller.start_polling_async()
-            self.clock_wait_event.wait(TEST_TIMEOUT_SECONDS)
+            self.block_until_clock_wait_call()
+            self.mock_local_clock.now.return_value = TIMESTAMP_B
+            self.block_until_clock_wait_call()
 
         self.assertEqual(
             db_store.AmbientLightRecord(
-                timestamp=TIMESTAMP_A, ambient_light=50.0),
+                timestamp=TIMESTAMP_B, ambient_light=50.0),
             self.record_queue.get(block=True, timeout=TEST_TIMEOUT_SECONDS))
-        self.mock_local_clock.wait.assert_called_with(POLL_INTERVAL)
+        # Should be no more items in the queue.
+        self.assertTrue(self.record_queue.empty())
 
 
-class SoilWateringPollerTest(unittest.TestCase):
+class SoilWateringPollerTest(PollerTest):
 
     def setUp(self):
-        self.clock_wait_event = threading.Event()
-        self.mock_local_clock = mock.Mock()
+        super(SoilWateringPollerTest, self).setUp()
         self.mock_pump_manager = mock.Mock()
         self.mock_soil_moisture_sensor = mock.Mock()
-        self.record_queue = Queue.Queue()
-        self.factory = poller.SensorPollerFactory(
-            self.mock_local_clock, POLL_INTERVAL, self.record_queue)
-
-    def _stop_poller(self, poller):
-        poller.close()
-        self.clock_wait_event.set()
 
     def test_soil_watering_poller_when_pump_run(self):
         with contextlib.closing(
@@ -102,27 +109,27 @@ class SoilWateringPollerTest(unittest.TestCase):
                     self.mock_soil_moisture_sensor,
                     self.mock_pump_manager)) as soil_watering_poller:
             self.mock_local_clock.now.return_value = TIMESTAMP_A
-            self.mock_local_clock.wait.side_effect = (
-                lambda _: self._stop_poller(soil_watering_poller))
             self.mock_pump_manager.pump_if_needed.return_value = 200
             self.mock_soil_moisture_sensor.moisture.return_value = 100
 
             soil_watering_poller.start_polling_async()
-            self.clock_wait_event.wait(TEST_TIMEOUT_SECONDS)
+            self.block_until_clock_wait_call()
+            self.mock_local_clock.now.return_value = TIMESTAMP_B
+            self.block_until_clock_wait_call()
+
         records_expected = [
             db_store.SoilMoistureRecord(
-                timestamp=TIMESTAMP_A, soil_moisture=100),
+                timestamp=TIMESTAMP_B, soil_moisture=100),
             db_store.WateringEventRecord(
-                timestamp=TIMESTAMP_A, water_pumped=200.0)
+                timestamp=TIMESTAMP_B, water_pumped=200.0)
         ]
         records_actual = [
             self.record_queue.get(block=True, timeout=TEST_TIMEOUT_SECONDS),
             self.record_queue.get(block=True, timeout=TEST_TIMEOUT_SECONDS)
         ]
+        self.assertItemsEqual(records_expected, records_actual)
         # Should be no more items in the queue.
         self.assertTrue(self.record_queue.empty())
-        self.assertItemsEqual(records_expected, records_actual)
-        self.mock_local_clock.wait.assert_called_with(POLL_INTERVAL)
         self.mock_pump_manager.pump_if_needed.assert_called_with(100)
 
     def test_soil_watering_poller_when_pump_not_run(self):
@@ -131,36 +138,41 @@ class SoilWateringPollerTest(unittest.TestCase):
                     self.mock_soil_moisture_sensor,
                     self.mock_pump_manager)) as soil_watering_poller:
             self.mock_local_clock.now.return_value = TIMESTAMP_A
-            self.mock_local_clock.wait.side_effect = (
-                lambda _: self._stop_poller(soil_watering_poller))
             self.mock_pump_manager.pump_if_needed.return_value = 0
             self.mock_soil_moisture_sensor.moisture.return_value = 500
 
             soil_watering_poller.start_polling_async()
-            self.clock_wait_event.wait(TEST_TIMEOUT_SECONDS)
+            self.block_until_clock_wait_call()
+            self.mock_local_clock.now.return_value = TIMESTAMP_B
+            self.block_until_clock_wait_call()
+
         self.assertEqual(
             db_store.SoilMoistureRecord(
-                timestamp=TIMESTAMP_A, soil_moisture=500),
+                timestamp=TIMESTAMP_B, soil_moisture=500),
             self.record_queue.get(block=True, timeout=TEST_TIMEOUT_SECONDS))
         # Should be no more items in the queue.
         self.assertTrue(self.record_queue.empty())
-        self.mock_local_clock.wait.assert_called_with(POLL_INTERVAL)
         self.mock_pump_manager.pump_if_needed.assert_called_with(500)
 
 
-class CameraPollerTest(unittest.TestCase):
+class CameraPollerTest(PollerTest):
+
+    def setUp(self):
+        super(CameraPollerTest, self).setUp()
+        self.mock_camera_manager = mock.Mock()
 
     def test_camera_poller(self):
-        clock_wait_event = threading.Event()
-        mock_local_clock = mock.Mock()
-        mock_camera_manager = mock.Mock()
-        factory = poller.SensorPollerFactory(
-            mock_local_clock, POLL_INTERVAL, record_queue=None)
         with contextlib.closing(
-                factory.create_camera_poller(
-                    mock_camera_manager)) as camera_poller:
-            mock_local_clock.wait.side_effect = lambda _: clock_wait_event.set()
+                self.factory.create_camera_poller(
+                    self.mock_camera_manager)) as camera_poller:
+            self.mock_local_clock.now.return_value = TIMESTAMP_A
 
             camera_poller.start_polling_async()
-            clock_wait_event.wait(TEST_TIMEOUT_SECONDS)
-            mock_camera_manager.save_photo.assert_called()
+            self.block_until_clock_wait_call()
+            self.mock_local_clock.now.return_value = TIMESTAMP_B
+            self.block_until_clock_wait_call()
+
+        self.mock_camera_manager.save_photo.assert_called()
+        # Should be nothing items in the queue because CameraPoller does not
+        # create database records.
+        self.assertTrue(self.record_queue.empty())

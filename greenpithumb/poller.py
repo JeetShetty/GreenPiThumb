@@ -1,9 +1,17 @@
+import datetime
 import logging
 import threading
+
+import pytz
 
 import db_store
 
 logger = logging.getLogger(__name__)
+
+# Number of seconds to idle between checks for whether a poller needs to poll or
+# a poller needs to stop (note that this is NOT the total time a poller sleeps
+# between polls).
+_IDLE_SECONDS = 0.5
 
 
 class SensorPollerFactory(object):
@@ -49,6 +57,22 @@ class SensorPollerFactory(object):
                               self._record_queue, camera_manager))
 
 
+def _datetime_to_unix_time(dt):
+    """Converts a datetime into seconds since UNIX epoch."""
+    unix_epoch = datetime.datetime(year=1970, month=1, day=1, tzinfo=pytz.utc)
+    return int((dt - unix_epoch).total_seconds())
+
+
+def _round_up_to_multiple(value, multiple):
+    """Rounds an integer value up to a multiple specified."""
+    mod = value % multiple
+    # Value is already an exact multiple, so return the original value.
+    if mod == 0:
+        return value
+    # Round up to next multiple
+    return (value - mod) + multiple
+
+
 class _SensorPollWorkerBase(object):
     """Base class for sensor poll worker.
 
@@ -73,12 +97,54 @@ class _SensorPollWorkerBase(object):
         self._sensor = sensor
         self._stopped = threading.Event()
 
+    def _unix_now(self):
+        return _datetime_to_unix_time(self._local_clock.now())
+
+    def _wait_until_unix_time(self, target_unix_time):
+        """Waits until the target time arrives or the worker is stopped.
+
+        Args:
+            target_unix_time: UNIX time to wait until.
+        """
+        logger.info('%s is waiting %d seconds until next poll',
+                    self.__class__.__name__,
+                    target_unix_time - self._unix_now())
+        while not self._is_stopped() and (self._unix_now() < target_unix_time):
+            self._local_clock.wait(_IDLE_SECONDS)
+
+    def _next_poll_time(self, last_poll_time):
+        """Calculates time of next poll in UNIX time.
+
+        Calculates time of next poll so that it is a multiple of
+        self._poll_interval. If the next multiple is the same as the last poll
+        time, returns a poll time that is the current time + one poll interval.
+
+        Args:
+            last_poll_time: The UNIX time of the last poll or None if this is
+                the first poll.
+
+        Returns:
+            UNIX time of next scheduled poll.
+        """
+        next_poll_time = _round_up_to_multiple(self._unix_now(),
+                                               self._poll_interval)
+        if last_poll_time and (next_poll_time == last_poll_time):
+            next_poll_time += self._poll_interval
+        return next_poll_time
+
+    def _is_stopped(self):
+        return self._stopped.is_set()
+
     def poll(self):
-        """Polls at a fixed interval until caller calls close()."""
+        """Polls at a fixed interval until caller calls stop()."""
         logger.info('polling starting for %s', self.__class__.__name__)
-        while not self._stopped.is_set():
+        next_poll_time = self._next_poll_time(last_poll_time=None)
+        while True:
+            self._wait_until_unix_time(next_poll_time)
+            if self._is_stopped():
+                break
             self._poll_once()
-            self._local_clock.wait(self._poll_interval)
+            next_poll_time = self._next_poll_time(last_poll_time=next_poll_time)
         logger.info('polling terminating for %s', self.__class__.__name__)
 
     def stop(self):
@@ -179,6 +245,7 @@ class _SensorPoller(object):
     def start_polling_async(self):
         """Starts a new thread to begin polling."""
         t = threading.Thread(target=self._worker.poll)
+        t.setDaemon(True)
         t.start()
 
     def close(self):
