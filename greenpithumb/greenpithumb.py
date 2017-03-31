@@ -7,6 +7,7 @@ import Adafruit_DHT
 import Adafruit_MCP3008
 import RPi.GPIO as GPIO
 
+import adc_thread_safe
 import clock
 import db_store
 import dht11
@@ -31,11 +32,12 @@ def make_sensor_pollers(poll_interval, wiring_config, record_queue):
     # * CS/SHDN -> CS
     # * DOUT -> MISO
     # * DIN -> MOSI
-    adc = Adafruit_MCP3008.MCP3008(
-        clk=wiring_config.gpio_pins.mcp3008_clk,
-        cs=wiring_config.gpio_pins.mcp3008_cs_shdn,
-        miso=wiring_config.gpio_pins.mcp3008_dout,
-        mosi=wiring_config.gpio_pins.mcp3008_din)
+    adc = adc_thread_safe.Adc(
+        Adafruit_MCP3008.MCP3008(
+            clk=wiring_config.gpio_pins.mcp3008_clk,
+            cs=wiring_config.gpio_pins.mcp3008_cs_shdn,
+            miso=wiring_config.gpio_pins.mcp3008_dout,
+            mosi=wiring_config.gpio_pins.mcp3008_din))
     local_dht11 = dht11.CachingDHT11(
         lambda: Adafruit_DHT.read_retry(Adafruit_DHT.DHT11, wiring_config.gpio_pins.dht11),
         local_clock)
