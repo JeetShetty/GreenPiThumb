@@ -1,3 +1,5 @@
+import Queue
+
 import db_store
 
 
@@ -21,17 +23,20 @@ class RecordProcessor(object):
         self._temperature_store = temperature_store
         self._watering_event_store = watering_event_store
 
-    def process_next_record(self):
+    def try_process_next_record(self):
         """Processes the next record from the queue, placing it in a store.
 
-        Retrieves the next item from the queue (blocking until one is
-        available) and then places it in the appropriate database store for its
-        record type.
+        If an item is available in the queue, removes it and places it in the
+        appropriate store. If no item is in the queue, returns immediately.
 
         Must be called from the same thread from which the database connections
         were created.
         """
-        record = self._record_queue.get()
+        try:
+            record = self._record_queue.get_nowait()
+        except Queue.Empty:
+            return
+
         if isinstance(record, db_store.SoilMoistureRecord):
             self._soil_moisture_store.insert(record)
         elif isinstance(record, db_store.AmbientLightRecord):

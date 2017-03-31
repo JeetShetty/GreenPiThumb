@@ -2,6 +2,7 @@ import argparse
 import contextlib
 import logging
 import Queue
+import time
 
 import Adafruit_DHT
 import Adafruit_MCP3008
@@ -116,7 +117,10 @@ def main(args):
             for current_poller in pollers:
                 current_poller.start_polling_async()
             while True:
-                record_processor.process_next_record()
+                record_processor.try_process_next_record()
+                time.sleep(0.1)
+        except KeyboardInterrupt:
+            logger.info('Caught keyboard interrupt. Exiting.')
         finally:
             for current_poller in pollers:
                 current_poller.close()
