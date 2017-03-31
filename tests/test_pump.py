@@ -1,6 +1,8 @@
+import datetime
 import unittest
 
 import mock
+import pytz
 
 from greenpithumb import clock
 from greenpithumb import pump
@@ -54,3 +56,108 @@ class PumpTest(unittest.TestCase):
         """Attempting to pump a negative amount of water raises an exception."""
         with self.assertRaises(ValueError):
             pump.Pump(self.mock_pi_io, self.mock_clock, 6).pump_water(-5.0)
+
+
+class PumpManagerTest(unittest.TestCase):
+
+    def setUp(self):
+        self.mock_pump = mock.Mock()
+        self.mock_pump_scheduler = mock.Mock()
+        self.manager = pump.PumpManager(self.mock_pump,
+                                        self.mock_pump_scheduler)
+
+    def test_low_moisture_triggers_pump(self):
+        self.mock_pump_scheduler.is_running_pump_allowed.return_value = True
+        moisture = pump.SOIL_MOISTURE_THRESHOLD - 100
+        ml_pumped = self.manager.pump_if_needed(moisture)
+        self.mock_pump.pump_water.assert_called_once_with(
+            pump.DEFAULT_PUMP_AMOUNT)
+        self.assertEqual(ml_pumped, pump.DEFAULT_PUMP_AMOUNT)
+
+    def test_pump_not_triggered_if_moisture_is_at_threshold(self):
+        self.mock_pump_scheduler.is_running_pump_allowed.return_value = True
+        moisture = pump.SOIL_MOISTURE_THRESHOLD
+        ml_pumped = self.manager.pump_if_needed(moisture)
+        # Pump should not run if soil moisture is exactly at threshold.
+        self.assertFalse(self.mock_pump.pump_water.called)
+        self.assertEqual(ml_pumped, 0)
+
+    def test_pump_not_triggered_if_moisture_is_high(self):
+        self.mock_pump_scheduler.is_running_pump_allowed.return_value = True
+        moisture = pump.SOIL_MOISTURE_THRESHOLD + 350
+        ml_pumped = self.manager.pump_if_needed(moisture)
+        # Pump should not run if soil moisture is above threshold.
+        self.assertFalse(self.mock_pump.pump_water.called)
+        self.assertEqual(ml_pumped, 0)
+
+    def test_pump_is_disabled_during_quiet_hours(self):
+        self.mock_pump_scheduler.is_running_pump_allowed.return_value = False
+        moisture = pump.SOIL_MOISTURE_THRESHOLD - 100
+        ml_pumped = self.manager.pump_if_needed(moisture)
+        self.assertFalse(self.mock_pump.pump_water.called)
+        self.assertEqual(ml_pumped, 0)
+
+
+class PumpSchedulerTest(unittest.TestCase):
+
+    def setUp(self):
+        self.mock_local_clock = mock.Mock()
+
+    def test_wake_time_less_than_sleep_time(self):
+        """Test rollover from one day to the next.
+
+        If the sleep period spans two days, the pump should not run between
+        midnight and the wake hour.
+        """
+        self.mock_local_clock.now.return_value = (datetime.datetime(
+            2016, 7, 23, 10, 51, 9, 928000, tzinfo=pytz.utc))
+        sleep_windows = [(datetime.time(23, 0), datetime.time(11, 0))]
+        pump_scheduler = pump.PumpScheduler(self.mock_local_clock,
+                                            sleep_windows)
+        self.assertFalse(pump_scheduler.is_running_pump_allowed())
+
+    def test_wake_time_greater_than_sleep_time(self):
+        self.mock_local_clock.now.return_value = (datetime.datetime(
+            2016, 7, 23, 10, 51, 9, 928000, tzinfo=pytz.utc))
+        sleep_windows = [(datetime.time(5, 23), datetime.time(14, 15))]
+        pump_scheduler = pump.PumpScheduler(self.mock_local_clock,
+                                            sleep_windows)
+        self.assertFalse(pump_scheduler.is_running_pump_allowed())
+
+    def test_multiple_sleep_windows(self):
+        """Pump should not run if current hour is in any sleep window."""
+        self.mock_local_clock.now.return_value = (datetime.datetime(
+            2016, 7, 23, 10, 51, 9, 928000, tzinfo=pytz.utc))
+        sleep_windows = [(datetime.time(16, 30), datetime.time(20, 45)),
+                         (datetime.time(8, 13), datetime.time(11, 18))]
+        pump_scheduler = pump.PumpScheduler(self.mock_local_clock,
+                                            sleep_windows)
+        self.assertFalse(pump_scheduler.is_running_pump_allowed())
+
+    def test_running_pump_allowed_if_not_in_sleep_window(self):
+        self.mock_local_clock.now.return_value = (datetime.datetime(
+            2016, 7, 23, 10, 51, 9, 928000, tzinfo=pytz.utc))
+        sleep_windows = [(datetime.time(2, 11), datetime.time(8, 33))]
+        pump_scheduler = pump.PumpScheduler(self.mock_local_clock,
+                                            sleep_windows)
+        self.assertTrue(pump_scheduler.is_running_pump_allowed())
+
+    def test_current_hour_and_minute_equal_to_sleep_time(self):
+        """Running pump should not be allowed."""
+        now = datetime.datetime(2016, 7, 23, 10, 51, 9, 928000, tzinfo=pytz.utc)
+        self.mock_local_clock.now.return_value = now
+        sleep_windows = [(datetime.time(now.hour, now.minute),
+                          datetime.time(11, 0))]
+        pump_scheduler = pump.PumpScheduler(self.mock_local_clock,
+                                            sleep_windows)
+        self.assertFalse(pump_scheduler.is_running_pump_allowed())
+
+    def test_current_hour_and_minute_equal_to_wake_time(self):
+        """Running pump should be allowed."""
+        now = datetime.datetime(2016, 7, 23, 10, 51, 9, 928000, tzinfo=pytz.utc)
+        self.mock_local_clock.now.return_value = now
+        sleep_windows = [(datetime.time(10, 0), datetime.time(now.hour,
+                                                              now.minute))]
+        pump_scheduler = pump.PumpScheduler(self.mock_local_clock,
+                                            sleep_windows)
+        self.assertTrue(pump_scheduler.is_running_pump_allowed())
