@@ -17,15 +17,19 @@ import light_sensor
 import moisture_sensor
 import pi_io
 import poller
+import pump
 import record_processor
+import sleep_windows
 import temperature_sensor
 import wiring_config_parser
 
 logger = logging.getLogger(__name__)
 
 
-def make_sensor_pollers(poll_interval, wiring_config, record_queue):
+def make_sensor_pollers(poll_interval, wiring_config, record_queue,
+                        sleep_windows):
     logger.info('creating sensor pollers (poll interval=%d")', poll_interval)
+    utc_clock = clock.Clock()
     local_clock = clock.LocalClock()
     # The MCP3008 spec and Adafruit library use different naming for the
     # Raspberry Pi GPIO pins, so we translate as follows:
@@ -42,17 +46,13 @@ def make_sensor_pollers(poll_interval, wiring_config, record_queue):
     local_dht11 = dht11.CachingDHT11(
         lambda: Adafruit_DHT.read_retry(Adafruit_DHT.DHT11, wiring_config.gpio_pins.dht11),
         local_clock)
+    water_pump = pump.Pump(
+        pi_io.IO(GPIO), utc_clock, wiring_config.gpio_pins.pump)
+    pump_scheduler = pump.PumpScheduler(local_clock, sleep_windows)
+    pump_manager = pump.PumpManager(water_pump, pump_scheduler)
 
     poller_factory = poller.SensorPollerFactory(local_clock, poll_interval,
                                                 record_queue)
-
-    # Temporary PumpManager class until we finish the real class.
-    class DummyPumpManager(object):
-
-        def pump_if_needed(self, _):
-            return 0
-
-    pump_manager = DummyPumpManager()
 
     return [
         poller_factory.create_temperature_poller(
@@ -108,8 +108,9 @@ def main(args):
     logger.info('starting greenpithumb')
     wiring_config = read_wiring_config(args.config_file)
     record_queue = Queue.Queue()
+    parsed_windows = sleep_windows.parse(args.sleep_window)
     pollers = make_sensor_pollers(args.poll_interval, wiring_config,
-                                  record_queue)
+                                  record_queue, parsed_windows)
     with contextlib.closing(db_store.open_or_create_db(
             args.db_file)) as db_connection:
         record_processor = create_record_processor(db_connection, record_queue)
