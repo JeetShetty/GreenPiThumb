@@ -136,7 +136,7 @@ if __name__ == '__main__':
         '--poll_interval',
         type=float,
         help='Number of seconds between each sensor poll',
-        default=0.5)
+        default=(15 * 60))
     parser.add_argument(
         '-c',
         '--config_file',
