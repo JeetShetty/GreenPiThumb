@@ -118,8 +118,8 @@ def main(args):
             for current_poller in pollers:
                 current_poller.start_polling_async()
             while True:
-                record_processor.try_process_next_record()
-                time.sleep(0.1)
+                if not record_processor.try_process_next_record():
+                    time.sleep(0.1)
         except KeyboardInterrupt:
             logger.info('Caught keyboard interrupt. Exiting.')
         finally:

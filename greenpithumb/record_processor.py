@@ -31,11 +31,19 @@ class RecordProcessor(object):
 
         Must be called from the same thread from which the database connections
         were created.
+
+        Returns:
+            True if it processed a record, False if the queue contained no
+            records.
+
+        Raises:
+            UnsupportedRecordError if the queue contains an unexpected record
+                type.
         """
         try:
             record = self._record_queue.get_nowait()
         except Queue.Empty:
-            return
+            return False
 
         if isinstance(record, db_store.SoilMoistureRecord):
             self._soil_moisture_store.insert(record)
@@ -50,3 +58,4 @@ class RecordProcessor(object):
         else:
             raise UnsupportedRecordError('Unrecognized record type: %s' %
                                          str(record))
+        return True
