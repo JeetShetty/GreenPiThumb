@@ -1,4 +1,7 @@
+import logging
 import os
+
+logger = logging.getLogger(__name__)
 
 
 class CameraManager(object):
@@ -22,7 +25,9 @@ class CameraManager(object):
         """Captures an image from the camera and saves it to the filesystem."""
         filename = self._local_clock.now().isoformat().replace(':', '-') + (
             '.jpg')
-        self._camera.capture(os.path.join(self._image_path, filename))
+        full_path = os.path.join(self._image_path, filename)
+        self._camera.capture(full_path)
+        logger.info('saved new photo to %s', full_path)
 
     def close(self):
         """Closes the camera.

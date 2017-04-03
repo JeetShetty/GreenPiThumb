@@ -6,9 +6,11 @@ import time
 
 import Adafruit_DHT
 import Adafruit_MCP3008
+import picamera
 import RPi.GPIO as GPIO
 
 import adc_thread_safe
+import camera_manager
 import clock
 import db_store
 import dht11
@@ -72,6 +74,15 @@ def make_sensor_pollers(poll_interval, wiring_config, record_queue,
     ]
 
 
+def make_camera_poller(photo_interval, image_path, record_queue):
+    local_clock = clock.LocalClock()
+    poller_factory = poller.SensorPollerFactory(local_clock, photo_interval,
+                                                record_queue)
+    return poller_factory.create_camera_poller(
+        camera_manager.CameraManager(image_path, local_clock,
+                                     picamera.PiCamera()))
+
+
 def read_wiring_config(config_filename):
     logger.info('reading wiring config at "%s"', config_filename)
     with open(config_filename) as config_file:
@@ -111,6 +122,8 @@ def main(args):
     parsed_windows = sleep_windows.parse(args.sleep_window)
     pollers = make_sensor_pollers(args.poll_interval, wiring_config,
                                   record_queue, parsed_windows)
+    pollers.append(
+        make_camera_poller(args.photo_interval, args.image_path, record_queue))
     with contextlib.closing(db_store.open_or_create_db(
             args.db_file)) as db_connection:
         record_processor = create_record_processor(db_connection, record_queue)
@@ -137,6 +150,12 @@ if __name__ == '__main__':
         type=float,
         help='Number of seconds between each sensor poll',
         default=(15 * 60))
+    parser.add_argument(
+        '-t',
+        '--photo_interval',
+        type=float,
+        help='Number of seconds between each camera photo',
+        default=(4 * 60 * 60))
     parser.add_argument(
         '-c',
         '--config_file',
