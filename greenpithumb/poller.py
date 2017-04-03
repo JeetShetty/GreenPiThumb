@@ -17,43 +17,43 @@ _IDLE_SECONDS = 0.5
 class SensorPollerFactory(object):
     """Factory for creating sensor poller objects."""
 
-    def __init__(self, local_clock, poll_interval, record_queue):
+    def __init__(self, clock, poll_interval, record_queue):
         """Create a new SensorPollerFactory instance.
 
         Args:
-            local_clock: A local time zone clock interface.
+            clock: A clock interface.
             poll_interval: An int of how often the data should be polled for,
                 in seconds.
             record_queue: Queue on which to place database records.
         """
-        self._local_clock = local_clock
+        self._clock = clock
         self._poll_interval = poll_interval
         self._record_queue = record_queue
 
     def create_temperature_poller(self, temperature_sensor):
         return _SensorPoller(
-            _TemperaturePollWorker(self._local_clock, self._poll_interval,
+            _TemperaturePollWorker(self._clock, self._poll_interval,
                                    self._record_queue, temperature_sensor))
 
     def create_humidity_poller(self, humidity_sensor):
         return _SensorPoller(
-            _HumidityPollWorker(self._local_clock, self._poll_interval,
+            _HumidityPollWorker(self._clock, self._poll_interval,
                                 self._record_queue, humidity_sensor))
 
     def create_ambient_light_poller(self, light_sensor):
         return _SensorPoller(
-            _AmbientLightPollWorker(self._local_clock, self._poll_interval,
+            _AmbientLightPollWorker(self._clock, self._poll_interval,
                                     self._record_queue, light_sensor))
 
     def create_soil_watering_poller(self, moisture_sensor, pump_manager):
         return _SensorPoller(
-            _SoilWateringPollWorker(self._local_clock, self._poll_interval,
+            _SoilWateringPollWorker(self._clock, self._poll_interval,
                                     self._record_queue, moisture_sensor,
                                     pump_manager))
 
     def create_camera_poller(self, camera_manager):
         return _SensorPoller(
-            _CameraPollWorker(self._local_clock, self._poll_interval,
+            _CameraPollWorker(self._clock, self._poll_interval,
                               self._record_queue, camera_manager))
 
 
@@ -80,25 +80,25 @@ class _SensorPollWorkerBase(object):
     background polling thread.
     """
 
-    def __init__(self, local_clock, poll_interval, record_queue, sensor):
+    def __init__(self, clock, poll_interval, record_queue, sensor):
         """Create a new _SensorPollWorkerBase instance
 
         Args:
-            local_clock: A local time zone clock interface.
+            clock: A clock interface.
             poll_interval: An int of how often the data should be polled for,
                 in seconds.
             record_queue: Queue on which to place database records.
             sensor: A sensor to poll for status. The particular type of sensor
                 will vary depending on the poll worker subclass.
         """
-        self._local_clock = local_clock
+        self._clock = clock
         self._poll_interval = poll_interval
         self._record_queue = record_queue
         self._sensor = sensor
         self._stopped = threading.Event()
 
     def _unix_now(self):
-        return _datetime_to_unix_time(self._local_clock.now())
+        return _datetime_to_unix_time(self._clock.now())
 
     def _wait_until_unix_time(self, target_unix_time):
         """Waits until the target time arrives or the worker is stopped.
@@ -110,7 +110,7 @@ class _SensorPollWorkerBase(object):
                     self.__class__.__name__,
                     target_unix_time - self._unix_now())
         while not self._is_stopped() and (self._unix_now() < target_unix_time):
-            self._local_clock.wait(_IDLE_SECONDS)
+            self._clock.wait(_IDLE_SECONDS)
 
     def _next_poll_time(self, last_poll_time):
         """Calculates time of next poll in UNIX time.
@@ -159,7 +159,7 @@ class _TemperaturePollWorker(_SensorPollWorkerBase):
         """Polls for current ambient temperature and queues DB record."""
         temperature = self._sensor.temperature()
         self._record_queue.put(
-            db_store.TemperatureRecord(self._local_clock.now(), temperature))
+            db_store.TemperatureRecord(self._clock.now(), temperature))
 
 
 class _HumidityPollWorker(_SensorPollWorkerBase):
@@ -169,7 +169,7 @@ class _HumidityPollWorker(_SensorPollWorkerBase):
         """Polls for and stores current relative humidity."""
         humidity = self._sensor.humidity()
         self._record_queue.put(
-            db_store.HumidityRecord(self._local_clock.now(), humidity))
+            db_store.HumidityRecord(self._clock.now(), humidity))
 
 
 class _AmbientLightPollWorker(_SensorPollWorkerBase):
@@ -178,7 +178,7 @@ class _AmbientLightPollWorker(_SensorPollWorkerBase):
     def _poll_once(self):
         ambient_light = self._sensor.ambient_light()
         self._record_queue.put(
-            db_store.AmbientLightRecord(self._local_clock.now(), ambient_light))
+            db_store.AmbientLightRecord(self._clock.now(), ambient_light))
 
 
 class _SoilWateringPollWorker(_SensorPollWorkerBase):
@@ -188,12 +188,12 @@ class _SoilWateringPollWorker(_SensorPollWorkerBase):
     the moisture drops too low. Records both soil moisture and watering events.
     """
 
-    def __init__(self, local_clock, poll_interval, record_queue,
-                 soil_moisture_sensor, pump_manager):
+    def __init__(self, clock, poll_interval, record_queue, soil_moisture_sensor,
+                 pump_manager):
         """Creates a new SoilWateringPoller object.
 
         Args:
-            local_clock: A local time zone clock interface.
+            clock: A clock interface.
             poll_interval: An int of how often the data should be polled for,
                 in seconds.
             record_queue: Queue on which to place soil moisture records and
@@ -203,7 +203,7 @@ class _SoilWateringPollWorker(_SensorPollWorkerBase):
             pump_manager: An interface to manage a water pump.
         """
         super(_SoilWateringPollWorker, self).__init__(
-            local_clock, poll_interval, record_queue, soil_moisture_sensor)
+            clock, poll_interval, record_queue, soil_moisture_sensor)
         self._pump_manager = pump_manager
 
     def _poll_once(self):
@@ -215,12 +215,11 @@ class _SoilWateringPollWorker(_SensorPollWorkerBase):
         """
         soil_moisture = self._sensor.moisture()
         self._record_queue.put(
-            db_store.SoilMoistureRecord(self._local_clock.now(), soil_moisture))
+            db_store.SoilMoistureRecord(self._clock.now(), soil_moisture))
         ml_pumped = self._pump_manager.pump_if_needed(soil_moisture)
         if ml_pumped > 0:
             self._record_queue.put(
-                db_store.WateringEventRecord(self._local_clock.now(),
-                                             ml_pumped))
+                db_store.WateringEventRecord(self._clock.now(), ml_pumped))
 
 
 class _CameraPollWorker(_SensorPollWorkerBase):

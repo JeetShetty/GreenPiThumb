@@ -45,13 +45,13 @@ def make_sensor_pollers(poll_interval, wiring_config, record_queue,
             mosi=wiring_config.gpio_pins.mcp3008_din))
     local_dht11 = dht11.CachingDHT11(
         lambda: Adafruit_DHT.read_retry(Adafruit_DHT.DHT11, wiring_config.gpio_pins.dht11),
-        local_clock)
+        utc_clock)
     water_pump = pump.Pump(
         pi_io.IO(GPIO), utc_clock, wiring_config.gpio_pins.pump)
     pump_scheduler = pump.PumpScheduler(local_clock, sleep_windows)
     pump_manager = pump.PumpManager(water_pump, pump_scheduler)
 
-    poller_factory = poller.SensorPollerFactory(local_clock, poll_interval,
+    poller_factory = poller.SensorPollerFactory(utc_clock, poll_interval,
                                                 record_queue)
 
     return [
@@ -64,7 +64,7 @@ def make_sensor_pollers(poll_interval, wiring_config, record_queue,
                 adc,
                 pi_io.IO(GPIO), wiring_config.adc_channels.soil_moisture_sensor,
                 wiring_config.gpio_pins.soil_moisture_1,
-                wiring_config.gpio_pins.soil_moisture_2, local_clock),
+                wiring_config.gpio_pins.soil_moisture_2, utc_clock),
             pump_manager),
         poller_factory.create_ambient_light_poller(
             light_sensor.LightSensor(adc,
