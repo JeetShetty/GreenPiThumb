@@ -75,12 +75,14 @@ def make_sensor_pollers(poll_interval, wiring_config, record_queue,
 
 
 def make_camera_poller(photo_interval, image_path, record_queue):
-    local_clock = clock.LocalClock()
-    poller_factory = poller.SensorPollerFactory(local_clock, photo_interval,
+    utc_clock = clock.Clock()
+    poller_factory = poller.SensorPollerFactory(utc_clock, photo_interval,
                                                 record_queue)
     return poller_factory.create_camera_poller(
-        camera_manager.CameraManager(image_path, local_clock,
-                                     picamera.PiCamera()))
+        camera_manager.CameraManager(
+            image_path,
+            utc_clock,
+            picamera.PiCamera(resolution=picamera.PiCamera.MAX_RESOLUTION)))
 
 
 def read_wiring_config(config_filename):

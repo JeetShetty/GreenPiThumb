@@ -25,7 +25,7 @@ class TestCameraManager(unittest.TestCase):
                                              mock_camera)) as manager:
             manager.save_photo()
         mock_camera.capture.assert_called_once_with(
-            'C:/Users/Jeet/2016-07-23T10-51-09.928000+00-00.jpg')
+            'C:/Users/Jeet/2016-07-23T1051Z.jpg')
         mock_exists.assert_called_once_with(image_path)
         mock_makedirs.assert_not_called()
         mock_camera.close.assert_called()
