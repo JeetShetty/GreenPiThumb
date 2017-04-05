@@ -168,9 +168,10 @@ if __name__ == '__main__':
         '--sleep_window',
         action='append',
         type=str,
+        default=[],
         help=('Time window during which GreenPiThumb will not activate its '
               'pump. Window should be in the form of a time range in 24-hour '
-              'format, such as "03:15-03:45"'))
+              'format, such as "03:15-03:45 (in the local time zone)"'))
     parser.add_argument(
         '-i',
         '--image_path',
