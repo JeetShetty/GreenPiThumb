@@ -41,6 +41,9 @@ class MoistureSensor(object):
             moisture_one = self._adc.read_adc(self._channel)
             logger.info('soil moisture reading (1 of 2) = %d', moisture_one)
 
+            # We need to turn off both pins before the sleep so that the charge
+            # has time to dissipate before the next read.
+            self._pi_io.turn_pin_off(self._gpio_pin_1)
             self._clock.wait(0.1)
 
             self._pi_io.turn_pin_on(self._gpio_pin_2)

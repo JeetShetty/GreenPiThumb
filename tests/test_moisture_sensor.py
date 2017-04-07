@@ -36,9 +36,10 @@ class MoistureSensorTest(unittest.TestCase):
         self.assertEqual(350, sensor.moisture())
         self.assertEqual([mock.call(12), mock.call(16)],
                          self.mock_pi_io.turn_pin_on.call_args_list)
-        self.assertEqual(
-            [mock.call(16), mock.call(12), mock.call(12), mock.call(16)],
-            self.mock_pi_io.turn_pin_off.call_args_list)
+        self.assertEqual([
+            mock.call(16), mock.call(12), mock.call(12), mock.call(12),
+            mock.call(16)
+        ], self.mock_pi_io.turn_pin_off.call_args_list)
         self.assertFalse(self.pin_state[12])
         self.assertFalse(self.pin_state[16])
         self.mock_clock.wait.assert_called_once_with(0.1)
