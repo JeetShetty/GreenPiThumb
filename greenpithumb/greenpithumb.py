@@ -150,14 +150,14 @@ if __name__ == '__main__':
         '-p',
         '--poll_interval',
         type=float,
-        help='Number of seconds between each sensor poll',
-        default=(15 * 60))
+        help='Number of minutes between each sensor poll',
+        default=15)
     parser.add_argument(
         '-t',
         '--photo_interval',
         type=float,
-        help='Number of seconds between each camera photo',
-        default=(4 * 60 * 60))
+        help='Number of minutes between each camera photo',
+        default=(4 * 60))
     parser.add_argument(
         '-c',
         '--config_file',

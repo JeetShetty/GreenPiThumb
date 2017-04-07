@@ -8,6 +8,7 @@ import db_store
 
 logger = logging.getLogger(__name__)
 
+_SECONDS_PER_MINUTE = 60
 # Number of seconds to idle between checks for whether a poller needs to poll or
 # a poller needs to stop (note that this is NOT the total time a poller sleeps
 # between polls).
@@ -23,7 +24,7 @@ class SensorPollerFactory(object):
         Args:
             clock: A clock interface.
             poll_interval: An int of how often the data should be polled for,
-                in seconds.
+                in minutes.
             record_queue: Queue on which to place database records.
         """
         self._clock = clock
@@ -86,7 +87,7 @@ class _SensorPollWorkerBase(object):
         Args:
             clock: A clock interface.
             poll_interval: An int of how often the data should be polled for,
-                in seconds.
+                in minutes.
             record_queue: Queue on which to place database records.
             sensor: A sensor to poll for status. The particular type of sensor
                 will vary depending on the poll worker subclass.
@@ -129,7 +130,7 @@ class _SensorPollWorkerBase(object):
         next_poll_time = _round_up_to_multiple(self._unix_now(),
                                                self._poll_interval)
         if last_poll_time and (next_poll_time == last_poll_time):
-            next_poll_time += self._poll_interval
+            next_poll_time += (self._poll_interval * _SECONDS_PER_MINUTE)
         return next_poll_time
 
     def _is_stopped(self):
@@ -195,7 +196,7 @@ class _SoilWateringPollWorker(_SensorPollWorkerBase):
         Args:
             clock: A clock interface.
             poll_interval: An int of how often the data should be polled for,
-                in seconds.
+                in minutes.
             record_queue: Queue on which to place soil moisture records and
                 watering event records for storage.
             soil_moisture_sensor: An interface for reading the soil moisture

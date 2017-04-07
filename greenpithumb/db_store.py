@@ -54,8 +54,8 @@ CREATE TABLE watering_events
 """
 
 # Format to store timestamps to database (assumes timestamp is in UTC) in format
-# of YYYY-MM-DDTHH:MM:SSZ (ISO 8601 format)
-_TIMESTAMP_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
+# of YYYY-MM-DDTHH:MMZ.
+_TIMESTAMP_FORMAT = '%Y-%m-%dT%H:%MZ'
 
 
 def _timestamp_to_utc(timestamp):
