@@ -5,11 +5,6 @@ logger = logging.getLogger(__name__)
 # Pump rate in mL/s (4.3 L/min)
 _PUMP_RATE_ML_PER_SEC = 4300.0 / 60.0
 
-# If soil goes below this moisture threshold, pump needs to add water.
-# Moisture is based on sensor calibration by @dicksondisckson:
-# https://github.com/dicksondickson/PlantFriends/blob/master/sensor_node/RFM69/sensor_node.ino
-SOIL_MOISTURE_THRESHOLD = 300
-
 # Default amount of water to add to the plant (in mL) when pump manager detects
 # low soil moisture.
 DEFAULT_PUMP_AMOUNT = 200
@@ -60,16 +55,19 @@ class Pump(object):
 class PumpManager(object):
     """Pump Manager manages the water pump."""
 
-    def __init__(self, pump, pump_scheduler):
+    def __init__(self, pump, pump_scheduler, moisture_threshold):
         """Creates a PumpManager object, which manages a water pump.
 
         Args:
             pump: A pump instance, which supports water pumping.
             pump_scheduler: A pump scheduler instance that controls the time
                 periods in which the pump can be run.
+            moisture_threshold: Soil moisture threshold. If soil moisture is
+                below this value, manager pumps water on pump_if_needed calls.
         """
         self._pump = pump
         self._pump_scheduler = pump_scheduler
+        self._moisture_threshold = moisture_threshold
 
     def pump_if_needed(self, moisture):
         """Run the water pump if there is a need to run it.
@@ -85,7 +83,7 @@ class PumpManager(object):
             The amount of water pumped, in mL.
         """
         if self._pump_scheduler.is_running_pump_allowed():
-            if moisture < SOIL_MOISTURE_THRESHOLD:
+            if moisture < self._moisture_threshold:
                 pump_amount = DEFAULT_PUMP_AMOUNT
                 self._pump.pump_water(pump_amount)
                 return pump_amount

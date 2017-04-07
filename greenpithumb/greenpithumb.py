@@ -28,8 +28,8 @@ import wiring_config_parser
 logger = logging.getLogger(__name__)
 
 
-def make_sensor_pollers(poll_interval, wiring_config, record_queue,
-                        sleep_windows):
+def make_sensor_pollers(poll_interval, wiring_config, moisture_threshold,
+                        record_queue, sleep_windows):
     logger.info('creating sensor pollers (poll interval=%d")', poll_interval)
     utc_clock = clock.Clock()
     local_clock = clock.LocalClock()
@@ -51,7 +51,8 @@ def make_sensor_pollers(poll_interval, wiring_config, record_queue,
     water_pump = pump.Pump(
         pi_io.IO(GPIO), utc_clock, wiring_config.gpio_pins.pump)
     pump_scheduler = pump.PumpScheduler(local_clock, sleep_windows)
-    pump_manager = pump.PumpManager(water_pump, pump_scheduler)
+    pump_manager = pump.PumpManager(water_pump, pump_scheduler,
+                                    moisture_threshold)
 
     poller_factory = poller.SensorPollerFactory(utc_clock, poll_interval,
                                                 record_queue)
@@ -123,7 +124,8 @@ def main(args):
     record_queue = Queue.Queue()
     parsed_windows = sleep_windows.parse(args.sleep_window)
     pollers = make_sensor_pollers(args.poll_interval, wiring_config,
-                                  record_queue, parsed_windows)
+                                  args.moisture_threshold, record_queue,
+                                  parsed_windows)
     pollers.append(
         make_camera_poller(args.photo_interval, args.image_path, record_queue))
     with contextlib.closing(db_store.open_or_create_db(
@@ -183,6 +185,13 @@ if __name__ == '__main__':
         '--db_file',
         help='Location to store GreenPiThumb database file',
         default='greenpithumb/greenpithumb.db')
+    parser.add_argument(
+        '-m',
+        '--moisture_threshold',
+        type=int,
+        help=('Moisture threshold to start pump. The pump will turn on if the '
+              'moisture level drops below this level'),
+        default=900)
     parser.add_argument(
         '-v', '--verbose', action='store_true', help='Use verbose logging')
     main(parser.parse_args())
