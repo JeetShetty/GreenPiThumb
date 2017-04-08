@@ -173,6 +173,7 @@ class CameraPollerTest(PollerTest):
             self.block_until_clock_wait_call()
 
         self.mock_camera_manager.save_photo.assert_called()
+        self.mock_camera_manager.close.assert_called()
         # Should be nothing items in the queue because CameraPoller does not
         # create database records.
         self.assertTrue(self.record_queue.empty())

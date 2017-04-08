@@ -230,6 +230,11 @@ class _CameraPollWorker(_SensorPollWorkerBase):
         """Captures and stores an image."""
         self._sensor.save_photo()
 
+    def stop(self):
+        """End worker polling and close camera."""
+        self._sensor.close()
+        super(_CameraPollWorker, self).stop()
+
 
 class _SensorPoller(object):
     """Spawns and manages poll workers in background threads."""
