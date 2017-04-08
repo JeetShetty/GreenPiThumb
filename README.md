@@ -50,3 +50,17 @@ sudo pip install -r requirements.txt
 sudo pip install -r dev_requirements.txt
 cp greenpithumb/wiring_config.ini.example greenpithumb/wiring_config.ini
 ```
+
+## QuickStart Instructions
+
+After running the above installation steps on your Pi, run GreenPiThumb with a command following the template below:
+
+```bash
+sudo python greenpithumb/greenpithumb.py \
+  --poll_interval 15 \
+  --photo_interval 240 \
+  --sleep_window "23:15-07:00" \
+  --sleep_window "14:30-15:45" \
+  --image_path "images/" \
+  --moisture_threshold 900
+```
