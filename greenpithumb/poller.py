@@ -41,15 +41,15 @@ class SensorPollerFactory(object):
             _HumidityPollWorker(self._clock, self._poll_interval,
                                 self._record_queue, humidity_sensor))
 
-    def create_ambient_light_poller(self, light_sensor):
+    def create_light_poller(self, light_sensor):
         return _SensorPoller(
-            _AmbientLightPollWorker(self._clock, self._poll_interval,
-                                    self._record_queue, light_sensor))
+            _LightPollWorker(self._clock, self._poll_interval,
+                             self._record_queue, light_sensor))
 
-    def create_soil_watering_poller(self, moisture_sensor, pump_manager):
+    def create_soil_watering_poller(self, soil_moisture_sensor, pump_manager):
         return _SensorPoller(
             _SoilWateringPollWorker(self._clock, self._poll_interval,
-                                    self._record_queue, moisture_sensor,
+                                    self._record_queue, soil_moisture_sensor,
                                     pump_manager))
 
     def create_camera_poller(self, camera_manager):
@@ -157,7 +157,7 @@ class _TemperaturePollWorker(_SensorPollWorkerBase):
     """Polls a temperature sensor and stores the readings."""
 
     def _poll_once(self):
-        """Polls for current ambient temperature and queues DB record."""
+        """Polls for current temperature and queues DB record."""
         temperature = self._sensor.temperature()
         self._record_queue.put(
             db_store.TemperatureRecord(self._clock.now(), temperature))
@@ -173,13 +173,12 @@ class _HumidityPollWorker(_SensorPollWorkerBase):
             db_store.HumidityRecord(self._clock.now(), humidity))
 
 
-class _AmbientLightPollWorker(_SensorPollWorkerBase):
-    """Polls an ambient light sensor and stores the readings."""
+class _LightPollWorker(_SensorPollWorkerBase):
+    """Polls a light sensor and stores the readings."""
 
     def _poll_once(self):
-        ambient_light = self._sensor.ambient_light()
-        self._record_queue.put(
-            db_store.AmbientLightRecord(self._clock.now(), ambient_light))
+        light = self._sensor.light()
+        self._record_queue.put(db_store.LightRecord(self._clock.now(), light))
 
 
 class _SoilWateringPollWorker(_SensorPollWorkerBase):
@@ -214,7 +213,7 @@ class _SoilWateringPollWorker(_SensorPollWorkerBase):
         current soil moisture level, checks if the pump needs to run, and if so,
         runs the pump and records the watering event.
         """
-        soil_moisture = self._sensor.moisture()
+        soil_moisture = self._sensor.soil_moisture()
         self._record_queue.put(
             db_store.SoilMoistureRecord(self._clock.now(), soil_moisture))
         ml_pumped = self._pump_manager.pump_if_needed(soil_moisture)

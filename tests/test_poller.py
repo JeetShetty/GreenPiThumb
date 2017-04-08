@@ -76,21 +76,21 @@ class SimplePollerClassesTest(PollerTest):
         # Should be no more items in the queue.
         self.assertTrue(self.record_queue.empty())
 
-    def test_ambient_light_poller(self):
+    def test_light_poller(self):
         with contextlib.closing(
-                self.factory.create_ambient_light_poller(
-                    self.mock_sensor)) as ambient_light_poller:
+                self.factory.create_light_poller(
+                    self.mock_sensor)) as light_poller:
             self.mock_clock.now.return_value = TIMESTAMP_A
-            self.mock_sensor.ambient_light.return_value = 50.0
+            self.mock_sensor.light.return_value = 50.0
 
-            ambient_light_poller.start_polling_async()
+            light_poller.start_polling_async()
             self.block_until_clock_wait_call()
             self.mock_clock.now.return_value = TIMESTAMP_B
             self.block_until_clock_wait_call()
 
         self.assertEqual(
-            db_store.AmbientLightRecord(
-                timestamp=TIMESTAMP_B, ambient_light=50.0),
+            db_store.LightRecord(
+                timestamp=TIMESTAMP_B, light=50.0),
             self.record_queue.get(block=True, timeout=TEST_TIMEOUT_SECONDS))
         # Should be no more items in the queue.
         self.assertTrue(self.record_queue.empty())
@@ -110,7 +110,7 @@ class SoilWateringPollerTest(PollerTest):
                     self.mock_pump_manager)) as soil_watering_poller:
             self.mock_clock.now.return_value = TIMESTAMP_A
             self.mock_pump_manager.pump_if_needed.return_value = 200
-            self.mock_soil_moisture_sensor.moisture.return_value = 100
+            self.mock_soil_moisture_sensor.soil_moisture.return_value = 100
 
             soil_watering_poller.start_polling_async()
             self.block_until_clock_wait_call()
@@ -139,7 +139,7 @@ class SoilWateringPollerTest(PollerTest):
                     self.mock_pump_manager)) as soil_watering_poller:
             self.mock_clock.now.return_value = TIMESTAMP_A
             self.mock_pump_manager.pump_if_needed.return_value = 0
-            self.mock_soil_moisture_sensor.moisture.return_value = 500
+            self.mock_soil_moisture_sensor.soil_moisture.return_value = 500
 
             soil_watering_poller.start_polling_async()
             self.block_until_clock_wait_call()

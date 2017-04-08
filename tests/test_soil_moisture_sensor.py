@@ -3,7 +3,7 @@ import unittest
 
 import mock
 
-from greenpithumb import moisture_sensor
+from greenpithumb import soil_moisture_sensor
 
 
 class MoistureSensorTest(unittest.TestCase):
@@ -29,11 +29,11 @@ class MoistureSensorTest(unittest.TestCase):
         channel = 1
         gpio_pin_1 = 12
         gpio_pin_2 = 16
-        sensor = moisture_sensor.MoistureSensor(self.mock_adc, self.mock_pi_io,
-                                                channel, gpio_pin_1, gpio_pin_2,
-                                                self.mock_clock)
+        sensor = soil_moisture_sensor.SoilMoistureSensor(
+            self.mock_adc, self.mock_pi_io, channel, gpio_pin_1, gpio_pin_2,
+            self.mock_clock)
 
-        self.assertEqual(350, sensor.moisture())
+        self.assertEqual(350, sensor.soil_moisture())
         self.assertEqual([mock.call(12), mock.call(16)],
                          self.mock_pi_io.turn_pin_on.call_args_list)
         self.assertEqual([
@@ -49,12 +49,12 @@ class MoistureSensorTest(unittest.TestCase):
         channel = 1
         gpio_pin_1 = 12
         gpio_pin_2 = 16
-        sensor = moisture_sensor.MoistureSensor(self.mock_adc, self.mock_pi_io,
-                                                channel, gpio_pin_1, gpio_pin_2,
-                                                self.mock_clock)
+        sensor = soil_moisture_sensor.SoilMoistureSensor(
+            self.mock_adc, self.mock_pi_io, channel, gpio_pin_1, gpio_pin_2,
+            self.mock_clock)
 
         with self.assertRaises(ValueError):
-            sensor.moisture()
+            sensor.soil_moisture()
 
         self.assertFalse(self.pin_state[12])
         self.assertFalse(self.pin_state[16])

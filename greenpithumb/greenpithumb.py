@@ -16,7 +16,7 @@ import db_store
 import dht11
 import humidity_sensor
 import light_sensor
-import moisture_sensor
+import soil_moisture_sensor
 import pi_io
 import poller
 import pump
@@ -26,7 +26,6 @@ import temperature_sensor
 import wiring_config_parser
 
 logger = logging.getLogger(__name__)
-
 
 
 def make_sensor_pollers(poll_interval, wiring_config, moisture_threshold,
@@ -64,13 +63,13 @@ def make_sensor_pollers(poll_interval, wiring_config, moisture_threshold,
         poller_factory.create_humidity_poller(
             humidity_sensor.HumiditySensor(local_dht11)),
         poller_factory.create_soil_watering_poller(
-            moisture_sensor.MoistureSensor(
+            soil_moisture_sensor.SoilMoistureSensor(
                 adc,
                 pi_io.IO(GPIO), wiring_config.adc_channels.soil_moisture_sensor,
                 wiring_config.gpio_pins.soil_moisture_1,
                 wiring_config.gpio_pins.soil_moisture_2, utc_clock),
             pump_manager),
-        poller_factory.create_ambient_light_poller(
+        poller_factory.create_light_poller(
             light_sensor.LightSensor(adc,
                                      wiring_config.adc_channels.light_sensor)),
     ]
@@ -97,7 +96,7 @@ def create_record_processor(db_connection, record_queue):
     return record_processor.RecordProcessor(
         record_queue,
         db_store.SoilMoistureStore(db_connection),
-        db_store.AmbientLightStore(db_connection),
+        db_store.LightStore(db_connection),
         db_store.HumidityStore(db_connection),
         db_store.TemperatureStore(db_connection),
         db_store.WateringEventStore(db_connection))

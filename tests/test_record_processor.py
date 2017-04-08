@@ -14,14 +14,14 @@ class RecordProcessorTest(unittest.TestCase):
     def setUp(self):
         self.record_queue = Queue.Queue()
         self.mock_soil_moisture_store = mock.Mock()
-        self.mock_ambient_light_store = mock.Mock()
+        self.mock_light_store = mock.Mock()
         self.mock_humidity_store = mock.Mock()
         self.mock_temperature_store = mock.Mock()
         self.mock_watering_event_store = mock.Mock()
         self.processor = record_processor.RecordProcessor(
             record_queue=self.record_queue,
             soil_moisture_store=self.mock_soil_moisture_store,
-            ambient_light_store=self.mock_ambient_light_store,
+            light_store=self.mock_light_store,
             humidity_store=self.mock_humidity_store,
             temperature_store=self.mock_temperature_store,
             watering_event_store=self.mock_watering_event_store)
@@ -38,14 +38,14 @@ class RecordProcessorTest(unittest.TestCase):
         self.assertTrue(self.processor.try_process_next_record())
         self.mock_soil_moisture_store.insert.assert_called_with(record)
 
-    def test_process_ambient_light_record(self):
-        record = db_store.AmbientLightRecord(
+    def test_process_light_record(self):
+        record = db_store.LightRecord(
             timestamp=datetime.datetime(
                 2016, 7, 23, 10, 51, 9, 928000, tzinfo=pytz.utc),
-            ambient_light=29.2)
+            light=29.2)
         self.record_queue.put(record)
         self.assertTrue(self.processor.try_process_next_record())
-        self.mock_ambient_light_store.insert.assert_called_with(record)
+        self.mock_light_store.insert.assert_called_with(record)
 
     def test_process_humidity_record(self):
         record = db_store.HumidityRecord(

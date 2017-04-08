@@ -14,11 +14,11 @@ class UnsupportedRecordError(Error):
 class RecordProcessor(object):
     """Stores records from a queue into database stores."""
 
-    def __init__(self, record_queue, soil_moisture_store, ambient_light_store,
+    def __init__(self, record_queue, soil_moisture_store, light_store,
                  humidity_store, temperature_store, watering_event_store):
         self._record_queue = record_queue
         self._soil_moisture_store = soil_moisture_store
-        self._ambient_light_store = ambient_light_store
+        self._light_store = light_store
         self._humidity_store = humidity_store
         self._temperature_store = temperature_store
         self._watering_event_store = watering_event_store
@@ -47,8 +47,8 @@ class RecordProcessor(object):
 
         if isinstance(record, db_store.SoilMoistureRecord):
             self._soil_moisture_store.insert(record)
-        elif isinstance(record, db_store.AmbientLightRecord):
-            self._ambient_light_store.insert(record)
+        elif isinstance(record, db_store.LightRecord):
+            self._light_store.insert(record)
         elif isinstance(record, db_store.HumidityRecord):
             self._humidity_store.insert(record)
         elif isinstance(record, db_store.TemperatureRecord):

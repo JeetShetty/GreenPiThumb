@@ -3,11 +3,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class MoistureSensor(object):
-    """Wrapper for DHT11 moisture sensor."""
+class SoilMoistureSensor(object):
+    """Wrapper for a moisture sensor."""
 
     def __init__(self, adc, pi_io, channel, gpio_pin_1, gpio_pin_2, clock):
-        """Creates a new MoistureSensor wrapper.
+        """Creates a new SoilMoistureSensor instance.
 
         Args:
             adc: ADC(analog to digital) interface to receive analog signals from
@@ -28,8 +28,8 @@ class MoistureSensor(object):
         self._gpio_pin_2 = gpio_pin_2
         self._clock = clock
 
-    def moisture(self):
-        """Returns the moisture level.
+    def soil_moisture(self):
+        """Returns the soil moisture level.
 
         Takes two readings from the moisture sensor with the GPIO pins powering
         it alternately turned on and off (one in each state). Returns the

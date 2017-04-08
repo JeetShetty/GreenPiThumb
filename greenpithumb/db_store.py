@@ -12,8 +12,7 @@ logger = logging.getLogger(__name__)
 # or event.
 SoilMoistureRecord = collections.namedtuple('SoilMoistureRecord',
                                             ['timestamp', 'soil_moisture'])
-AmbientLightRecord = collections.namedtuple('AmbientLightRecord',
-                                            ['timestamp', 'ambient_light'])
+LightRecord = collections.namedtuple('LightRecord', ['timestamp', 'light'])
 HumidityRecord = collections.namedtuple('HumidityRecord',
                                         ['timestamp', 'humidity'])
 # temperature value is in degrees Celsius.
@@ -29,9 +28,9 @@ _CREATE_TABLE_COMMANDS = """
 CREATE TABLE temperature
 (
     timestamp TEXT,
-    temperature REAL    --ambient temperature (in degrees Celsius)
+    temperature REAL    --temperature (in degrees Celsius)
 );
-CREATE TABLE ambient_humidity
+CREATE TABLE humidity
 (
     timestamp TEXT,
     humidity REAL
@@ -41,7 +40,7 @@ CREATE TABLE soil_moisture
     timestamp TEXT,
     soil_moisture INTEGER
 );
-CREATE TABLE ambient_light
+CREATE TABLE light
 (
     timestamp TEXT,
     light REAL
@@ -174,30 +173,29 @@ class SoilMoistureStore(_DbStoreBase):
         return self._do_get('SELECT * FROM soil_moisture', SoilMoistureRecord)
 
 
-class AmbientLightStore(_DbStoreBase):
-    """Stores timestamp and ambient light readings."""
+class LightStore(_DbStoreBase):
+    """Stores timestamp and light readings."""
 
-    def insert(self, ambient_light_record):
-        """Inserts ambient light and timestamp info into an SQLite database.
+    def insert(self, light_record):
+        """Inserts light and timestamp info into an SQLite database.
 
         Args:
-            ambient_light_record: Ambient light record to store.
+            light_record: Light record to store.
         """
-        self._do_insert('INSERT INTO ambient_light VALUES (?, ?)',
-                        ambient_light_record.timestamp,
-                        ambient_light_record.ambient_light)
+        self._do_insert('INSERT INTO light VALUES (?, ?)',
+                        light_record.timestamp, light_record.light)
 
     def get(self):
-        """Retrieves timestamp and ambient light readings.
+        """Retrieves timestamp and light readings.
 
         Returns:
-            A list of objects with 'timestamp' and 'ambient_light' fields.
+            A list of objects with 'timestamp' and 'light' fields.
         """
-        return self._do_get('SELECT * FROM ambient_light', AmbientLightRecord)
+        return self._do_get('SELECT * FROM light', LightRecord)
 
 
 class HumidityStore(_DbStoreBase):
-    """Stores timestamp and ambient humidity readings."""
+    """Stores timestamp and humidity readings."""
 
     def insert(self, humidity_record):
         """Inserts humidity and timestamp info into an SQLite database.
@@ -205,7 +203,7 @@ class HumidityStore(_DbStoreBase):
         Args:
             humidity_record: Humidity record to store.
         """
-        self._do_insert('INSERT INTO ambient_humidity VALUES (?, ?)',
+        self._do_insert('INSERT INTO humidity VALUES (?, ?)',
                         humidity_record.timestamp, humidity_record.humidity)
 
     def get(self):
@@ -214,11 +212,11 @@ class HumidityStore(_DbStoreBase):
         Returns:
             A list of objects with 'timestamp' and 'humidity' fields.
         """
-        return self._do_get('SELECT * FROM ambient_humidity', HumidityRecord)
+        return self._do_get('SELECT * FROM humidity', HumidityRecord)
 
 
 class TemperatureStore(_DbStoreBase):
-    """Stores timestamp and ambient temperature readings."""
+    """Stores timestamp and temperature readings."""
 
     def insert(self, temperature_record):
         """Inserts temperature and timestamp info into an SQLite database.
