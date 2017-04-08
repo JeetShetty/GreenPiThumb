@@ -28,8 +28,9 @@ import wiring_config_parser
 logger = logging.getLogger(__name__)
 
 
+
 def make_sensor_pollers(poll_interval, wiring_config, moisture_threshold,
-                        record_queue, sleep_windows):
+                        record_queue, sleep_windows, raspberry_pi_io):
     logger.info('creating sensor pollers (poll interval=%d")', poll_interval)
     utc_clock = clock.Clock()
     local_clock = clock.LocalClock()
@@ -48,8 +49,8 @@ def make_sensor_pollers(poll_interval, wiring_config, moisture_threshold,
     local_dht11 = dht11.CachingDHT11(
         lambda: Adafruit_DHT.read_retry(Adafruit_DHT.DHT11, wiring_config.gpio_pins.dht11),
         utc_clock)
-    water_pump = pump.Pump(
-        pi_io.IO(GPIO), utc_clock, wiring_config.gpio_pins.pump)
+    water_pump = pump.Pump(raspberry_pi_io, utc_clock,
+                           wiring_config.gpio_pins.pump)
     pump_scheduler = pump.PumpScheduler(local_clock, sleep_windows)
     pump_manager = pump.PumpManager(water_pump, pump_scheduler,
                                     moisture_threshold)
@@ -123,9 +124,10 @@ def main(args):
     wiring_config = read_wiring_config(args.config_file)
     record_queue = Queue.Queue()
     parsed_windows = sleep_windows.parse(args.sleep_window)
+    raspberry_pi_io = pi_io.IO(GPIO)
     pollers = make_sensor_pollers(args.poll_interval, wiring_config,
                                   args.moisture_threshold, record_queue,
-                                  parsed_windows)
+                                  parsed_windows, raspberry_pi_io)
     pollers.append(
         make_camera_poller(args.photo_interval, args.image_path, record_queue))
     with contextlib.closing(db_store.open_or_create_db(
@@ -142,6 +144,7 @@ def main(args):
         finally:
             for current_poller in pollers:
                 current_poller.close()
+            raspberry_pi_io.close()
 
 
 if __name__ == '__main__':
