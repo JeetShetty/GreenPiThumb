@@ -11,7 +11,6 @@ from greenpithumb import db_store
 from greenpithumb import poller
 
 TEST_TIMEOUT_SECONDS = 3.0
-POLL_INTERVAL = 15
 TIMESTAMP_A = datetime.datetime(2016, 7, 23, 10, 51, 9, 928000, tzinfo=pytz.utc)
 # TIMESTAMP_B is on the poll interval boundary immediately after TIMESTAMP_A.
 TIMESTAMP_B = datetime.datetime(2016, 7, 23, 10, 51, 15, 0, tzinfo=pytz.utc)
@@ -26,9 +25,10 @@ class PollerTest(unittest.TestCase):
             lambda _: self.clock_wait_event.set())
         self.mock_sensor = mock.Mock()
         self.mock_store = mock.Mock()
+        poll_interval = datetime.timedelta(seconds=15)
         self.record_queue = Queue.Queue()
         self.factory = poller.SensorPollerFactory(
-            self.mock_clock, POLL_INTERVAL, self.record_queue)
+            self.mock_clock, poll_interval, self.record_queue)
 
     def block_until_clock_wait_call(self):
         """Blocks until the clock's wait method is called or test times out."""

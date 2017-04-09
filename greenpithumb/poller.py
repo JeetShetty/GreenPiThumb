@@ -23,8 +23,8 @@ class SensorPollerFactory(object):
 
         Args:
             clock: A clock interface.
-            poll_interval: An int of how often the data should be polled for,
-                in minutes.
+            poll_interval: A timedelta of how often the data should be polled
+                for.
             record_queue: Queue on which to place database records.
         """
         self._clock = clock
@@ -86,8 +86,8 @@ class _SensorPollWorkerBase(object):
 
         Args:
             clock: A clock interface.
-            poll_interval: An int of how often the data should be polled for,
-                in minutes.
+            poll_interval: A timedelta of how often the data should be polled
+                for.
             record_queue: Queue on which to place database records.
             sensor: A sensor to poll for status. The particular type of sensor
                 will vary depending on the poll worker subclass.
@@ -127,10 +127,10 @@ class _SensorPollWorkerBase(object):
         Returns:
             UNIX time of next scheduled poll.
         """
-        next_poll_time = _round_up_to_multiple(self._unix_now(),
-                                               self._poll_interval)
+        next_poll_time = _round_up_to_multiple(
+            self._unix_now(), int(self._poll_interval.total_seconds()))
         if last_poll_time and (next_poll_time == last_poll_time):
-            next_poll_time += (self._poll_interval * _SECONDS_PER_MINUTE)
+            next_poll_time += int(self._poll_interval.total_seconds())
         return next_poll_time
 
     def _is_stopped(self):
@@ -194,8 +194,8 @@ class _SoilWateringPollWorker(_SensorPollWorkerBase):
 
         Args:
             clock: A clock interface.
-            poll_interval: An int of how often the data should be polled for,
-                in minutes.
+            poll_interval: A timedelta of how often the data should be polled
+                for.
             record_queue: Queue on which to place soil moisture records and
                 watering event records for storage.
             soil_moisture_sensor: An interface for reading the soil moisture

@@ -1,5 +1,6 @@
 import argparse
 import contextlib
+import datetime
 import logging
 import Queue
 import time
@@ -30,7 +31,8 @@ logger = logging.getLogger(__name__)
 
 def make_sensor_pollers(poll_interval, wiring_config, moisture_threshold,
                         record_queue, sleep_windows, raspberry_pi_io):
-    logger.info('creating sensor pollers (poll interval=%d")', poll_interval)
+    logger.info('creating sensor pollers (poll interval=%ds")',
+                poll_interval.total_seconds())
     utc_clock = clock.Clock()
     local_clock = clock.LocalClock()
     # The MCP3008 spec and Adafruit library use different naming for the
@@ -124,11 +126,13 @@ def main(args):
     record_queue = Queue.Queue()
     parsed_windows = sleep_windows.parse(args.sleep_window)
     raspberry_pi_io = pi_io.IO(GPIO)
-    pollers = make_sensor_pollers(args.poll_interval, wiring_config,
+    poll_interval = datetime.timedelta(minutes=args.poll_interval)
+    photo_interval = datetime.timedelta(minutes=args.photo_interval)
+    pollers = make_sensor_pollers(poll_interval, wiring_config,
                                   args.moisture_threshold, record_queue,
                                   parsed_windows, raspberry_pi_io)
     pollers.append(
-        make_camera_poller(args.photo_interval, args.image_path, record_queue))
+        make_camera_poller(photo_interval, args.image_path, record_queue))
     with contextlib.closing(db_store.open_or_create_db(
             args.db_file)) as db_connection:
         record_processor = create_record_processor(db_connection, record_queue)
