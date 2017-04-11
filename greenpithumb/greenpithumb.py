@@ -17,12 +17,12 @@ import db_store
 import dht11
 import humidity_sensor
 import light_sensor
-import soil_moisture_sensor
 import pi_io
 import poller
 import pump
 import record_processor
 import sleep_windows
+import soil_moisture_sensor
 import temperature_sensor
 import wiring_config_parser
 
