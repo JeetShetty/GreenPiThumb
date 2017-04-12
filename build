@@ -15,13 +15,18 @@ coverage run \
 pyflakes greenpithumb/*.py tests/*.py
 
 # Check that source has correct formatting.
-yapf \
+DIFF=$(yapf \
   --diff \
   --recursive \
   --style google \
   ./ \
   --exclude "./greenpithumb/dht11/*" \
-  --exclude "./third_party/*"
+  --exclude "./third_party/*")
+if [ -n "${DIFF}" ]; then
+  echo "FAIL: Formatting does not match style:"
+  echo "${DIFF}"
+  exit 1
+fi
 
 # Check that docstrings are formatted correctly.
 PYTHONPATH=$PYTHONPATH:$(pwd)/third_party/docstringchecker \
