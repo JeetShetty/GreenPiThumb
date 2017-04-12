@@ -56,7 +56,8 @@ def make_sensor_pollers(poll_interval, wiring_config, moisture_threshold,
     pump_manager = pump.PumpManager(water_pump, pump_scheduler,
                                     moisture_threshold)
 
-    poller_factory = poller.SensorPollerFactory(utc_clock, poll_interval,
+    make_scheduler_func = lambda: poller.Scheduler(utc_clock, poll_interval)
+    poller_factory = poller.SensorPollerFactory(make_scheduler_func,
                                                 record_queue)
 
     return [
@@ -79,7 +80,8 @@ def make_sensor_pollers(poll_interval, wiring_config, moisture_threshold,
 
 def make_camera_poller(photo_interval, image_path, record_queue):
     utc_clock = clock.Clock()
-    poller_factory = poller.SensorPollerFactory(utc_clock, photo_interval,
+    make_scheduler_func = lambda: poller.Scheduler(utc_clock, photo_interval)
+    poller_factory = poller.SensorPollerFactory(make_scheduler_func,
                                                 record_queue)
     return poller_factory.create_camera_poller(
         camera_manager.CameraManager(

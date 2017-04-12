@@ -18,44 +18,40 @@ _IDLE_SECONDS = 0.5
 class SensorPollerFactory(object):
     """Factory for creating sensor poller objects."""
 
-    def __init__(self, clock, poll_interval, record_queue):
+    def __init__(self, make_scheduler_func, record_queue):
         """Create a new SensorPollerFactory instance.
 
         Args:
-            clock: A clock interface.
-            poll_interval: A timedelta of how often the data should be polled
-                for.
+            make_scheduler_func: A function for creating a polling scheduler.
             record_queue: Queue on which to place database records.
         """
-        self._clock = clock
-        self._poll_interval = poll_interval
+        self._make_scheduler_func = make_scheduler_func
         self._record_queue = record_queue
 
     def create_temperature_poller(self, temperature_sensor):
         return _SensorPoller(
-            _TemperaturePollWorker(self._clock, self._poll_interval,
+            _TemperaturePollWorker(self._make_scheduler_func(),
                                    self._record_queue, temperature_sensor))
 
     def create_humidity_poller(self, humidity_sensor):
         return _SensorPoller(
-            _HumidityPollWorker(self._clock, self._poll_interval,
-                                self._record_queue, humidity_sensor))
+            _HumidityPollWorker(self._make_scheduler_func(), self._record_queue,
+                                humidity_sensor))
 
     def create_light_poller(self, light_sensor):
         return _SensorPoller(
-            _LightPollWorker(self._clock, self._poll_interval,
-                             self._record_queue, light_sensor))
+            _LightPollWorker(self._make_scheduler_func(), self._record_queue,
+                             light_sensor))
 
     def create_soil_watering_poller(self, soil_moisture_sensor, pump_manager):
         return _SensorPoller(
-            _SoilWateringPollWorker(self._clock, self._poll_interval,
-                                    self._record_queue, soil_moisture_sensor,
-                                    pump_manager))
+            _SoilWateringPollWorker(self._make_scheduler_func(
+            ), self._record_queue, soil_moisture_sensor, pump_manager))
 
     def create_camera_poller(self, camera_manager):
         return _SensorPoller(
-            _CameraPollWorker(self._clock, self._poll_interval,
-                              self._record_queue, camera_manager))
+            _CameraPollWorker(self._make_scheduler_func(), self._record_queue,
+                              camera_manager))
 
 
 def _datetime_to_unix_time(dt):
@@ -74,6 +70,62 @@ def _round_up_to_multiple(value, multiple):
     return (value - mod) + multiple
 
 
+class Scheduler(object):
+    """Scheduler for choosing the next time a poller performs a poll."""
+
+    def __init__(self, clock, poll_interval):
+        """Creates a new Scheduler instance.
+
+        Args:
+            clock: A clock interface.
+            poll_interval: A timedelta representing how often the data should be
+                polled.
+        """
+        self._clock = clock
+        self._poll_interval = poll_interval
+        self._last_poll_time = None
+
+    def _unix_now(self):
+        return _datetime_to_unix_time(self._clock.now())
+
+    def _next_poll_time(self):
+        """Calculates time of next poll in UNIX time.
+
+        Calculates time of next poll so that it is a multiple of
+        self._poll_interval. If the next multiple is the same as the last poll
+        time, returns a poll time that is the current time + one poll interval.
+
+        Returns:
+            UNIX time of next scheduled poll.
+        """
+        next_poll_time = _round_up_to_multiple(
+            self._unix_now(), int(self._poll_interval.total_seconds()))
+        if self._last_poll_time and (next_poll_time == self._last_poll_time):
+            next_poll_time += int(self._poll_interval.total_seconds())
+        self._last_poll_time = next_poll_time
+        return next_poll_time
+
+    def wait_until_poll_time(self, timeout):
+        """Waits until the next poll time.
+
+        Args:
+            timeout: The maximum time (in seconds) to wait for the next poll
+                time.
+
+        Returns:
+            True if wait to poll time completed, False if wait timed out.
+        """
+        seconds_until_poll_time = self._next_poll_time() - self._unix_now()
+        wait_seconds = min(seconds_until_poll_time, timeout)
+        if wait_seconds:
+            self._clock.wait(wait_seconds)
+        # Return True if we didn't time out waiting.
+        return seconds_until_poll_time <= timeout
+
+    def last_poll_time(self):
+        return self._last_poll_time
+
+
 class _SensorPollWorkerBase(object):
     """Base class for sensor poll worker.
 
@@ -81,71 +133,36 @@ class _SensorPollWorkerBase(object):
     background polling thread.
     """
 
-    def __init__(self, clock, poll_interval, record_queue, sensor):
+    def __init__(self, scheduler, record_queue, sensor):
         """Create a new _SensorPollWorkerBase instance
 
         Args:
-            clock: A clock interface.
-            poll_interval: A timedelta of how often the data should be polled
-                for.
+            scheduler: Poll time scheduler.
             record_queue: Queue on which to place database records.
             sensor: A sensor to poll for status. The particular type of sensor
                 will vary depending on the poll worker subclass.
         """
-        self._clock = clock
-        self._poll_interval = poll_interval
+        self._scheduler = scheduler
         self._record_queue = record_queue
         self._sensor = sensor
         self._stopped = threading.Event()
 
-    def _unix_now(self):
-        return _datetime_to_unix_time(self._clock.now())
-
-    def _wait_until_unix_time(self, target_unix_time):
-        """Waits until the target time arrives or the worker is stopped.
-
-        Args:
-            target_unix_time: UNIX time to wait until.
-        """
-        logger.info('%s is waiting %d seconds until next poll',
-                    self.__class__.__name__,
-                    target_unix_time - self._unix_now())
-        while not self._is_stopped() and (self._unix_now() < target_unix_time):
-            self._clock.wait(_IDLE_SECONDS)
-
-    def _next_poll_time(self, last_poll_time):
-        """Calculates time of next poll in UNIX time.
-
-        Calculates time of next poll so that it is a multiple of
-        self._poll_interval. If the next multiple is the same as the last poll
-        time, returns a poll time that is the current time + one poll interval.
-
-        Args:
-            last_poll_time: The UNIX time of the last poll or None if this is
-                the first poll.
-
-        Returns:
-            UNIX time of next scheduled poll.
-        """
-        next_poll_time = _round_up_to_multiple(
-            self._unix_now(), int(self._poll_interval.total_seconds()))
-        if last_poll_time and (next_poll_time == last_poll_time):
-            next_poll_time += int(self._poll_interval.total_seconds())
-        return next_poll_time
-
     def _is_stopped(self):
         return self._stopped.is_set()
+
+    def _wait_until_poll_time_or_stop(self):
+        while not self._is_stopped():
+            if self._scheduler.wait_until_poll_time(_IDLE_SECONDS):
+                return
 
     def poll(self):
         """Polls at a fixed interval until caller calls stop()."""
         logger.info('polling starting for %s', self.__class__.__name__)
-        next_poll_time = self._next_poll_time(last_poll_time=None)
         while True:
-            self._wait_until_unix_time(next_poll_time)
+            self._wait_until_poll_time_or_stop()
             if self._is_stopped():
                 break
             self._poll_once()
-            next_poll_time = self._next_poll_time(last_poll_time=next_poll_time)
         logger.info('polling terminating for %s', self.__class__.__name__)
 
     def stop(self):
@@ -160,7 +177,8 @@ class _TemperaturePollWorker(_SensorPollWorkerBase):
         """Polls for current temperature and queues DB record."""
         temperature = self._sensor.temperature()
         self._record_queue.put(
-            db_store.TemperatureRecord(self._clock.now(), temperature))
+            db_store.TemperatureRecord(self._scheduler.last_poll_time(),
+                                       temperature))
 
 
 class _HumidityPollWorker(_SensorPollWorkerBase):
@@ -170,7 +188,7 @@ class _HumidityPollWorker(_SensorPollWorkerBase):
         """Polls for and stores current relative humidity."""
         humidity = self._sensor.humidity()
         self._record_queue.put(
-            db_store.HumidityRecord(self._clock.now(), humidity))
+            db_store.HumidityRecord(self._scheduler.last_poll_time(), humidity))
 
 
 class _LightPollWorker(_SensorPollWorkerBase):
@@ -178,7 +196,8 @@ class _LightPollWorker(_SensorPollWorkerBase):
 
     def _poll_once(self):
         light = self._sensor.light()
-        self._record_queue.put(db_store.LightRecord(self._clock.now(), light))
+        self._record_queue.put(
+            db_store.LightRecord(self._scheduler.last_poll_time(), light))
 
 
 class _SoilWateringPollWorker(_SensorPollWorkerBase):
@@ -188,22 +207,20 @@ class _SoilWateringPollWorker(_SensorPollWorkerBase):
     the moisture drops too low. Records both soil moisture and watering events.
     """
 
-    def __init__(self, clock, poll_interval, record_queue, soil_moisture_sensor,
+    def __init__(self, scheduler, record_queue, soil_moisture_sensor,
                  pump_manager):
         """Creates a new SoilWateringPoller object.
 
         Args:
-            clock: A clock interface.
-            poll_interval: A timedelta of how often the data should be polled
-                for.
+            scheduler: Poll time scheduler.
             record_queue: Queue on which to place soil moisture records and
                 watering event records for storage.
             soil_moisture_sensor: An interface for reading the soil moisture
                 level.
             pump_manager: An interface to manage a water pump.
         """
-        super(_SoilWateringPollWorker, self).__init__(
-            clock, poll_interval, record_queue, soil_moisture_sensor)
+        super(_SoilWateringPollWorker, self).__init__(scheduler, record_queue,
+                                                      soil_moisture_sensor)
         self._pump_manager = pump_manager
 
     def _poll_once(self):
@@ -215,11 +232,13 @@ class _SoilWateringPollWorker(_SensorPollWorkerBase):
         """
         soil_moisture = self._sensor.soil_moisture()
         self._record_queue.put(
-            db_store.SoilMoistureRecord(self._clock.now(), soil_moisture))
+            db_store.SoilMoistureRecord(self._scheduler.last_poll_time(),
+                                        soil_moisture))
         ml_pumped = self._pump_manager.pump_if_needed(soil_moisture)
         if ml_pumped > 0:
             self._record_queue.put(
-                db_store.WateringEventRecord(self._clock.now(), ml_pumped))
+                db_store.WateringEventRecord(self._scheduler.last_poll_time(),
+                                             ml_pumped))
 
 
 class _CameraPollWorker(_SensorPollWorkerBase):
