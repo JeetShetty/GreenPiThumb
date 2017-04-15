@@ -60,6 +60,11 @@ def _datetime_to_unix_time(dt):
     return int((dt - unix_epoch).total_seconds())
 
 
+def _unix_time_to_datetime(unix_time):
+    """Converts a UNIX timestamp to a UTC datetime."""
+    return datetime.datetime.fromtimestamp(unix_time, tz=pytz.utc)
+
+
 def _round_up_to_multiple(value, multiple):
     """Rounds an integer value up to a multiple specified."""
     mod = value % multiple
@@ -88,7 +93,7 @@ class Scheduler(object):
     def _unix_now(self):
         return _datetime_to_unix_time(self._clock.now())
 
-    def _next_poll_time(self):
+    def _next_poll_time_unix(self):
         """Calculates time of next poll in UNIX time.
 
         Calculates time of next poll so that it is a multiple of
@@ -98,12 +103,14 @@ class Scheduler(object):
         Returns:
             UNIX time of next scheduled poll.
         """
-        next_poll_time = _round_up_to_multiple(
+        next_poll_time_unix = _round_up_to_multiple(
             self._unix_now(), int(self._poll_interval.total_seconds()))
-        if self._last_poll_time and (next_poll_time == self._last_poll_time):
-            next_poll_time += int(self._poll_interval.total_seconds())
-        self._last_poll_time = next_poll_time
-        return next_poll_time
+        if self._last_poll_time and (
+                next_poll_time_unix ==
+                _datetime_to_unix_time(self._last_poll_time)):
+            next_poll_time_unix += int(self._poll_interval.total_seconds())
+
+        return next_poll_time_unix
 
     def wait_until_poll_time(self, timeout):
         """Waits until the next poll time.
@@ -115,12 +122,17 @@ class Scheduler(object):
         Returns:
             True if wait to poll time completed, False if wait timed out.
         """
-        seconds_until_poll_time = self._next_poll_time() - self._unix_now()
+        next_poll_time_unix = self._next_poll_time_unix()
+        seconds_until_poll_time = next_poll_time_unix - self._unix_now()
         wait_seconds = min(seconds_until_poll_time, timeout)
         if wait_seconds:
             self._clock.wait(wait_seconds)
-        # Return True if we didn't time out waiting.
-        return seconds_until_poll_time <= timeout
+        # If we didn't time out waiting, return True and update the last poll
+        # time.
+        if seconds_until_poll_time <= timeout:
+            self._last_poll_time = _unix_time_to_datetime(next_poll_time_unix)
+            return True
+        return False
 
     def last_poll_time(self):
         return self._last_poll_time

@@ -10,7 +10,7 @@ import pytz
 from greenpithumb import db_store
 from greenpithumb import poller
 
-TEST_TIMEOUT_SECONDS = 3.0
+TEST_TIMEOUT_SECONDS = 0.5
 TIMESTAMP_A = datetime.datetime(2016, 7, 23, 10, 51, 9, 928000, tzinfo=pytz.utc)
 
 
@@ -36,7 +36,7 @@ class SchedulerTest(unittest.TestCase):
             self.mock_clock, poll_interval=datetime.timedelta(minutes=5))
         # If it's 11:43:29, at 5m polling intervals, next poll is at 11:45:00,
         # 91 seconds later, so we should only wait the length of the timeout.
-        self.assertFalse(scheduler.wait_until_poll_time(timeout=(90)))
+        self.assertFalse(scheduler.wait_until_poll_time(timeout=90))
         self.mock_clock.wait.assert_called_with(90)
 
     def test_wait_equal_to_timeout_returns_True(self):
@@ -46,7 +46,7 @@ class SchedulerTest(unittest.TestCase):
             self.mock_clock, poll_interval=datetime.timedelta(minutes=5))
         # If it's 11:43:29, at 5m polling intervals, next poll is at 11:45:00,
         # 91 seconds later, so timeout is equal to wait time.
-        self.assertTrue(scheduler.wait_until_poll_time(timeout=(91)))
+        self.assertTrue(scheduler.wait_until_poll_time(timeout=91))
         self.mock_clock.wait.assert_called_with(91)
 
     def test_no_wait_if_first_call_is_on_interval_boundary(self):
@@ -70,6 +70,47 @@ class SchedulerTest(unittest.TestCase):
         # On next call, we should wait until the *next* poll interval boundary.
         self.assertTrue(scheduler.wait_until_poll_time(timeout=(10 * 60)))
         self.mock_clock.wait.assert_called_with(5 * 60)
+
+    def test_last_poll_time_is_None_before_wait_called(self):
+        self.mock_clock.now.return_value = datetime.datetime(
+            2017, 4, 9, 11, 43, 29, tzinfo=pytz.utc)
+        scheduler = poller.Scheduler(
+            self.mock_clock, poll_interval=datetime.timedelta(minutes=5))
+        # If no poll has happened, last_poll_time should be None.
+        self.assertIsNone(scheduler.last_poll_time())
+
+    def test_last_poll_time_is_None_before_poll_wait_completes(self):
+        self.mock_clock.now.return_value = datetime.datetime(
+            2017, 4, 9, 11, 43, 29, tzinfo=pytz.utc)
+        scheduler = poller.Scheduler(
+            self.mock_clock, poll_interval=datetime.timedelta(minutes=5))
+
+        # If we wait for poll, but timeout is not long enough for a poll to
+        # happen, last_poll_time should not change.
+        self.assertFalse(scheduler.wait_until_poll_time(timeout=30))
+        self.assertIsNone(scheduler.last_poll_time())
+
+    def test_last_poll_time_updates_when_wait_completes(self):
+        self.mock_clock.now.return_value = datetime.datetime(
+            2017, 4, 9, 11, 43, 29, tzinfo=pytz.utc)
+        scheduler = poller.Scheduler(
+            self.mock_clock, poll_interval=datetime.timedelta(minutes=5))
+
+        # If a poll completes, last_poll_time should update to the last poll
+        # time.
+        self.assertTrue(scheduler.wait_until_poll_time(timeout=120))
+        self.assertEqual(
+            datetime.datetime(
+                2017, 4, 9, 11, 45, 0, tzinfo=pytz.utc),
+            scheduler.last_poll_time())
+
+        self.mock_clock.now.return_value = datetime.datetime(
+            2017, 4, 9, 11, 49, 29, tzinfo=pytz.utc)
+        self.assertTrue(scheduler.wait_until_poll_time(timeout=120))
+        self.assertEqual(
+            datetime.datetime(
+                2017, 4, 9, 11, 50, 0, tzinfo=pytz.utc),
+            scheduler.last_poll_time())
 
 
 class PollerTest(unittest.TestCase):
