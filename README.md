@@ -64,3 +64,13 @@ sudo python greenpithumb/greenpithumb.py \
   --image_path "images/" \
   --moisture_threshold 900
 ```
+
+## Hardware
+
+GreenPiThumb is designed for compatibility with a [Raspberry Pi device](https://www.raspberrypi.org/products/) running the [Raspbian OS](https://www.raspberrypi.org/downloads/raspbian/).
+
+An example wiring can be found below:
+
+[![Fritzing wiring diagram](https://raw.githubusercontent.com/JeetShetty/GreenPiThumb/master/doc/greenpithumb_wiring.png)](https://raw.githubusercontent.com/JeetShetty/GreenPiThumb/master/doc/greenpithumb_wiring.png)
+
+The Fritzing diagram file for this diagram is available in the [`doc` folder](doc/).
