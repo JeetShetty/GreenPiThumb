@@ -268,11 +268,12 @@ class CameraPollerTest(PollerTest):
         super(CameraPollerTest, self).setUp()
         self.mock_camera_manager = mock.Mock()
 
-    def test_camera_poller(self):
+    def test_camera_poller_sufficient_light(self):
         with contextlib.closing(
                 self.factory.create_camera_poller(
                     self.mock_camera_manager)) as camera_poller:
             self.mock_is_poll_time = True
+            self.mock_camera_manager.sufficient_light.return_value = True
             camera_poller.start_polling_async()
             self.block_until_poll_completes()
 
@@ -280,4 +281,17 @@ class CameraPollerTest(PollerTest):
         self.mock_camera_manager.close.assert_called()
         # Should be nothing items in the queue because CameraPoller does not
         # create database records.
+        self.assertTrue(self.record_queue.empty())
+
+    def test_camera_poller_insufficient_light(self):
+        with contextlib.closing(
+                self.factory.create_camera_poller(
+                    self.mock_camera_manager)) as camera_poller:
+            self.mock_is_poll_time = True
+            self.mock_camera_manager.sufficient_light.return_value = False
+            camera_poller.start_polling_async()
+            self.block_until_poll_completes()
+
+        self.mock_camera_manager.save_photo.assert_not_called()
+        self.mock_camera_manager.close.assert_called()
         self.assertTrue(self.record_queue.empty())

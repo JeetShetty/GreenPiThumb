@@ -30,7 +30,8 @@ logger = logging.getLogger(__name__)
 
 
 def make_sensor_pollers(poll_interval, wiring_config, moisture_threshold,
-                        record_queue, sleep_windows, raspberry_pi_io):
+                        record_queue, sleep_windows, raspberry_pi_io,
+                        photo_interval, image_path):
     logger.info('creating sensor pollers (poll interval=%ds")',
                 poll_interval.total_seconds())
     utc_clock = clock.Clock()
@@ -57,8 +58,11 @@ def make_sensor_pollers(poll_interval, wiring_config, moisture_threshold,
                                     moisture_threshold)
 
     make_scheduler_func = lambda: poller.Scheduler(utc_clock, poll_interval)
+    photo_make_scheduler_func = lambda: poller.Scheduler(utc_clock, photo_interval)
     poller_factory = poller.SensorPollerFactory(make_scheduler_func,
                                                 record_queue)
+    camera_poller_factory = poller.SensorPollerFactory(
+        photo_make_scheduler_func, record_queue=None)
 
     return [
         poller_factory.create_temperature_poller(
@@ -71,23 +75,17 @@ def make_sensor_pollers(poll_interval, wiring_config, moisture_threshold,
                 pi_io.IO(GPIO), wiring_config.adc_channels.soil_moisture_sensor,
                 wiring_config.gpio_pins.soil_moisture_1,
                 wiring_config.gpio_pins.soil_moisture_2, utc_clock),
-            pump_manager),
-        poller_factory.create_light_poller(
+            pump_manager), poller_factory.create_light_poller(
+                light_sensor.LightSensor(
+                    adc, wiring_config.adc_channels.light_sensor)),
+        camera_poller_factory.create_camera_poller(
+            camera_manager.CameraManager(
+                image_path,
+                utc_clock,
+                picamera.PiCamera(resolution=picamera.PiCamera.MAX_RESOLUTION)),
             light_sensor.LightSensor(adc,
-                                     wiring_config.adc_channels.light_sensor)),
+                                     wiring_config.adc_channels.light_sensor))
     ]
-
-
-def make_camera_poller(photo_interval, image_path, record_queue):
-    utc_clock = clock.Clock()
-    make_scheduler_func = lambda: poller.Scheduler(utc_clock, photo_interval)
-    poller_factory = poller.SensorPollerFactory(make_scheduler_func,
-                                                record_queue)
-    return poller_factory.create_camera_poller(
-        camera_manager.CameraManager(
-            image_path,
-            utc_clock,
-            picamera.PiCamera(resolution=picamera.PiCamera.MAX_RESOLUTION)))
 
 
 def read_wiring_config(config_filename):
@@ -130,11 +128,9 @@ def main(args):
     raspberry_pi_io = pi_io.IO(GPIO)
     poll_interval = datetime.timedelta(minutes=args.poll_interval)
     photo_interval = datetime.timedelta(minutes=args.photo_interval)
-    pollers = make_sensor_pollers(poll_interval, wiring_config,
-                                  args.moisture_threshold, record_queue,
-                                  parsed_windows, raspberry_pi_io)
-    pollers.append(
-        make_camera_poller(photo_interval, args.image_path, record_queue))
+    pollers = make_sensor_pollers(
+        poll_interval, wiring_config, args.moisture_threshold, record_queue,
+        parsed_windows, raspberry_pi_io, photo_interval, args.image_path)
     with contextlib.closing(db_store.open_or_create_db(
             args.db_file)) as db_connection:
         record_processor = create_record_processor(db_connection, record_queue)
