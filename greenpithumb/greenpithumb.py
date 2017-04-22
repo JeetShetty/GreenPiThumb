@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 def make_sensor_pollers(poll_interval, wiring_config, moisture_threshold,
                         record_queue, sleep_windows, raspberry_pi_io,
-                        photo_interval, image_path):
+                        photo_interval, image_path, camera):
     logger.info('creating sensor pollers (poll interval=%ds")',
                 poll_interval.total_seconds())
     utc_clock = clock.Clock()
@@ -80,11 +80,9 @@ def make_sensor_pollers(poll_interval, wiring_config, moisture_threshold,
                     adc, wiring_config.adc_channels.light_sensor)),
         camera_poller_factory.create_camera_poller(
             camera_manager.CameraManager(
-                image_path,
-                utc_clock,
-                picamera.PiCamera(resolution=picamera.PiCamera.MAX_RESOLUTION)),
-            light_sensor.LightSensor(adc,
-                                     wiring_config.adc_channels.light_sensor))
+                image_path, utc_clock, camera,
+                light_sensor.LightSensor(
+                    adc, wiring_config.adc_channels.light_sensor)))
     ]
 
 
@@ -102,6 +100,20 @@ def create_record_processor(db_connection, record_queue):
         db_store.HumidityStore(db_connection),
         db_store.TemperatureStore(db_connection),
         db_store.WateringEventStore(db_connection))
+
+
+def create_camera(rotation):
+    """Creates a new Camera instance with the given camera settings.
+
+    Args:
+        rotation: The amount (in whole degrees) to rotate the camera image.
+
+    Returns:
+        A Camera instance with the given camera settings.
+    """
+    camera = picamera.PiCamera(resolution=picamera.PiCamera.MAX_RESOLUTION)
+    camera.rotation = rotation
+    return camera
 
 
 def configure_logging(verbose):
@@ -128,9 +140,11 @@ def main(args):
     raspberry_pi_io = pi_io.IO(GPIO)
     poll_interval = datetime.timedelta(minutes=args.poll_interval)
     photo_interval = datetime.timedelta(minutes=args.photo_interval)
-    pollers = make_sensor_pollers(
-        poll_interval, wiring_config, args.moisture_threshold, record_queue,
-        parsed_windows, raspberry_pi_io, photo_interval, args.image_path)
+    camera = create_camera(args.camera_rotation)
+    pollers = make_sensor_pollers(poll_interval, wiring_config,
+                                  args.moisture_threshold, record_queue,
+                                  parsed_windows, raspberry_pi_io,
+                                  photo_interval, args.image_path, camera)
     with contextlib.closing(db_store.open_or_create_db(
             args.db_file)) as db_connection:
         record_processor = create_record_processor(db_connection, record_queue)
@@ -196,6 +210,11 @@ if __name__ == '__main__':
         help=('Moisture threshold to start pump. The pump will turn on if the '
               'moisture level drops below this level'),
         default=900)
+    parser.add_argument(
+        '--camera_rotation',
+        type=int,
+        choices=(0, 90, 180, 270),
+        help='Specifies the amount to rotate the camera\'s image.')
     parser.add_argument(
         '-v', '--verbose', action='store_true', help='Use verbose logging')
     main(parser.parse_args())
