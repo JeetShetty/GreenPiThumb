@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 def make_sensor_pollers(poll_interval, wiring_config, moisture_threshold,
                         record_queue, sleep_windows, raspberry_pi_io,
-                        photo_interval, image_path, camera):
+                        photo_interval, image_path, camera, pump_interval):
     logger.info('creating sensor pollers (poll interval=%ds")',
                 poll_interval.total_seconds())
     utc_clock = clock.Clock()
@@ -54,8 +54,9 @@ def make_sensor_pollers(poll_interval, wiring_config, moisture_threshold,
     water_pump = pump.Pump(raspberry_pi_io, utc_clock,
                            wiring_config.gpio_pins.pump)
     pump_scheduler = pump.PumpScheduler(local_clock, sleep_windows)
+    pump_timer = clock.Timer(utc_clock, pump_interval)
     pump_manager = pump.PumpManager(water_pump, pump_scheduler,
-                                    moisture_threshold)
+                                    moisture_threshold, pump_timer)
 
     make_scheduler_func = lambda: poller.Scheduler(utc_clock, poll_interval)
     photo_make_scheduler_func = lambda: poller.Scheduler(utc_clock, photo_interval)
@@ -140,11 +141,12 @@ def main(args):
     raspberry_pi_io = pi_io.IO(GPIO)
     poll_interval = datetime.timedelta(minutes=args.poll_interval)
     photo_interval = datetime.timedelta(minutes=args.photo_interval)
+    pump_interval = datetime.timedelta(hours=args.water_interval)
     camera = create_camera(args.camera_rotation)
-    pollers = make_sensor_pollers(poll_interval, wiring_config,
-                                  args.moisture_threshold, record_queue,
-                                  parsed_windows, raspberry_pi_io,
-                                  photo_interval, args.image_path, camera)
+    pollers = make_sensor_pollers(
+        poll_interval, wiring_config, args.moisture_threshold, record_queue,
+        parsed_windows, raspberry_pi_io, photo_interval, args.image_path,
+        camera, pump_interval)
     with contextlib.closing(db_store.open_or_create_db(
             args.db_file)) as db_connection:
         record_processor = create_record_processor(db_connection, record_queue)
@@ -178,6 +180,12 @@ if __name__ == '__main__':
         type=float,
         help='Number of minutes between each camera photo',
         default=(4 * 60))
+    parser.add_argument(
+        '-w',
+        '--pump_interval',
+        type=float,
+        help='Max number of hours between plant waterings',
+        default=(3 * 24))
     parser.add_argument(
         '-c',
         '--config_file',

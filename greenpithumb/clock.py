@@ -29,3 +29,26 @@ class LocalClock(Clock):
     def now(self):
         time_utc = super(LocalClock, self).now()
         return time_utc.astimezone(tzlocal.get_localzone())
+
+
+class Timer(object):
+    """A countdown timer."""
+
+    def __init__(self, clock, duration):
+        """Creates a new timer.
+
+        Args:
+            clock: A clock interface.
+            duration: A datetime timedelta of the countdown duration.
+        """
+        self._clock = clock
+        self._duration = duration
+        self._start_time = self._clock.now()
+
+    def expired(self):
+        """Returns True if the countdown has expired."""
+        return (self._clock.now() - self._start_time) >= self._duration
+
+    def reset(self):
+        """Resets the countdown timer to its starting duration."""
+        self._start_time = self._clock.now()

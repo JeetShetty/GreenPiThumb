@@ -63,41 +63,61 @@ class PumpManagerTest(unittest.TestCase):
     def setUp(self):
         self.mock_pump = mock.Mock()
         self.mock_pump_scheduler = mock.Mock()
+        self.mock_timer = mock.Mock()
 
-    def test_low_moisture_triggers_pump(self):
+    def test_pump_triggered_if_low_moisture(self):
         manager = pump.PumpManager(self.mock_pump, self.mock_pump_scheduler,
-                                   300)
+                                   300, self.mock_timer)
         self.mock_pump_scheduler.is_running_pump_allowed.return_value = True
+        self.mock_timer.expired.return_value = False
         ml_pumped = manager.pump_if_needed(200)
         self.mock_pump.pump_water.assert_called_once_with(
             pump.DEFAULT_PUMP_AMOUNT)
+        self.mock_timer.reset.assert_called_once()
         self.assertEqual(ml_pumped, pump.DEFAULT_PUMP_AMOUNT)
 
     def test_pump_not_triggered_if_moisture_is_at_threshold(self):
         manager = pump.PumpManager(self.mock_pump, self.mock_pump_scheduler,
-                                   300)
+                                   300, self.mock_timer)
         self.mock_pump_scheduler.is_running_pump_allowed.return_value = True
+        self.mock_timer.expired.return_value = False
         ml_pumped = manager.pump_if_needed(300)
         # Pump should not run if soil moisture is exactly at threshold.
         self.assertFalse(self.mock_pump.pump_water.called)
+        self.assertFalse(self.mock_timer.reset.called)
         self.assertEqual(ml_pumped, 0)
 
     def test_pump_not_triggered_if_moisture_is_high(self):
         manager = pump.PumpManager(self.mock_pump, self.mock_pump_scheduler,
-                                   300)
+                                   300, self.mock_timer)
         self.mock_pump_scheduler.is_running_pump_allowed.return_value = True
+        self.mock_timer.expired.return_value = False
         ml_pumped = manager.pump_if_needed(650)
         # Pump should not run if soil moisture is above threshold.
         self.assertFalse(self.mock_pump.pump_water.called)
+        self.assertFalse(self.mock_timer.reset.called)
         self.assertEqual(ml_pumped, 0)
 
     def test_pump_is_disabled_during_quiet_hours(self):
         manager = pump.PumpManager(self.mock_pump, self.mock_pump_scheduler,
-                                   300)
+                                   300, self.mock_timer)
         self.mock_pump_scheduler.is_running_pump_allowed.return_value = False
+        self.mock_timer.expired.return_value = False
         ml_pumped = manager.pump_if_needed(200)
         self.assertFalse(self.mock_pump.pump_water.called)
+        self.assertFalse(self.mock_timer.reset.called)
         self.assertEqual(ml_pumped, 0)
+
+    def test_pump_triggered_if_timer_expired(self):
+        manager = pump.PumpManager(self.mock_pump, self.mock_pump_scheduler,
+                                   300, self.mock_timer)
+        self.mock_pump_scheduler.is_running_pump_allowed.return_value = True
+        self.mock_timer.expired.return_value = True
+        ml_pumped = manager.pump_if_needed(650)
+        self.mock_pump.pump_water.assert_called_once_with(
+            pump.DEFAULT_PUMP_AMOUNT)
+        self.mock_timer.reset.assert_called_once()
+        self.assertEqual(ml_pumped, pump.DEFAULT_PUMP_AMOUNT)
 
 
 class PumpSchedulerTest(unittest.TestCase):

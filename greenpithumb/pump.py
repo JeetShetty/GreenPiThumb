@@ -55,7 +55,7 @@ class Pump(object):
 class PumpManager(object):
     """Pump Manager manages the water pump."""
 
-    def __init__(self, pump, pump_scheduler, moisture_threshold):
+    def __init__(self, pump, pump_scheduler, moisture_threshold, timer):
         """Creates a PumpManager object, which manages a water pump.
 
         Args:
@@ -64,17 +64,17 @@ class PumpManager(object):
                 periods in which the pump can be run.
             moisture_threshold: Soil moisture threshold. If soil moisture is
                 below this value, manager pumps water on pump_if_needed calls.
+            timer: A timer that counts down until the next forced pump. When
+                this timer expires, the pump manager runs the pump once,
+                regardless of the moisture level.
         """
         self._pump = pump
         self._pump_scheduler = pump_scheduler
         self._moisture_threshold = moisture_threshold
+        self._timer = timer
 
     def pump_if_needed(self, moisture):
         """Run the water pump if there is a need to run it.
-
-        Checks whether it's time to run the pump and runs it if needed and
-        allowed. Running the pump is necessary if the soil's moisture is below
-        the defined moisture threshold.
 
         Args:
             moisture: Soil moisture level
@@ -82,13 +82,19 @@ class PumpManager(object):
         Returns:
             The amount of water pumped, in mL.
         """
-        if self._pump_scheduler.is_running_pump_allowed():
-            if moisture < self._moisture_threshold:
-                pump_amount = DEFAULT_PUMP_AMOUNT
-                self._pump.pump_water(pump_amount)
-                return pump_amount
+        if self._should_pump(moisture):
+            pump_amount = DEFAULT_PUMP_AMOUNT
+            self._pump.pump_water(pump_amount)
+            self._timer.reset()
+            return pump_amount
 
         return 0
+
+    def _should_pump(self, moisture):
+        """Returns True if the pump should be run."""
+        if not self._pump_scheduler.is_running_pump_allowed():
+            return False
+        return (moisture < self._moisture_threshold) or self._timer.expired()
 
 
 class PumpScheduler(object):
