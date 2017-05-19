@@ -46,7 +46,9 @@ class TestCameraManager(unittest.TestCase):
         mock_exists.assert_called_once_with(self.image_path)
         mock_makedirs.assert_called_once_with(self.image_path)
 
-    def test_sufficient_light_below_threshold(self):
+    @mock.patch.object(os.path, 'exists')
+    @mock.patch.object(os, 'makedirs')
+    def test_sufficient_light_below_threshold(self, mock_makedirs, mock_exists):
         self.mock_light_sensor.light.return_value = (
             camera_manager.LIGHT_THRESHOLD_PCT - 1)
         with contextlib.closing(
@@ -55,7 +57,9 @@ class TestCameraManager(unittest.TestCase):
                     self.mock_light_sensor)) as manager:
             self.assertFalse(manager.sufficient_light())
 
-    def test_sufficient_light_at_threshold(self):
+    @mock.patch.object(os.path, 'exists')
+    @mock.patch.object(os, 'makedirs')
+    def test_sufficient_light_at_threshold(self, mock_makedirs, mock_exists):
         self.mock_light_sensor.light.return_value = (
             camera_manager.LIGHT_THRESHOLD_PCT)
         with contextlib.closing(
@@ -64,7 +68,9 @@ class TestCameraManager(unittest.TestCase):
                     self.mock_light_sensor)) as manager:
             self.assertTrue(manager.sufficient_light())
 
-    def test_sufficient_light_above_threshold(self):
+    @mock.patch.object(os.path, 'exists')
+    @mock.patch.object(os, 'makedirs')
+    def test_sufficient_light_above_threshold(self, mock_makedirs, mock_exists):
         self.mock_light_sensor.light.return_value = (
             camera_manager.LIGHT_THRESHOLD_PCT + 1)
         with contextlib.closing(
