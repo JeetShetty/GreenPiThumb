@@ -3,8 +3,7 @@
 [gpio_pins]
 pump: 26
 dht11: 21
-soil_moisture_1: 12
-soil_moisture_2: 16
+soil_moisture: 16
 mcp3008_clk: 18
 mcp3008_dout: 23
 mcp3008_din: 24

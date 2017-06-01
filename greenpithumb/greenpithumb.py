@@ -74,8 +74,7 @@ def make_sensor_pollers(poll_interval, wiring_config, moisture_threshold,
             soil_moisture_sensor.SoilMoistureSensor(
                 adc,
                 pi_io.IO(GPIO), wiring_config.adc_channels.soil_moisture_sensor,
-                wiring_config.gpio_pins.soil_moisture_1,
-                wiring_config.gpio_pins.soil_moisture_2, utc_clock),
+                wiring_config.gpio_pins.soil_moisture),
             pump_manager), poller_factory.create_light_poller(
                 light_sensor.LightSensor(
                     adc, wiring_config.adc_channels.light_sensor)),
