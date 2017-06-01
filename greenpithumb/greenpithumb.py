@@ -141,7 +141,7 @@ def main(args):
     raspberry_pi_io = pi_io.IO(GPIO)
     poll_interval = datetime.timedelta(minutes=args.poll_interval)
     photo_interval = datetime.timedelta(minutes=args.photo_interval)
-    pump_interval = datetime.timedelta(hours=args.water_interval)
+    pump_interval = datetime.timedelta(hours=args.pump_interval)
     camera = create_camera(args.camera_rotation)
     pollers = make_sensor_pollers(
         poll_interval, wiring_config, args.moisture_threshold, record_queue,
