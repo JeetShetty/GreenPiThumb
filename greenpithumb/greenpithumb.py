@@ -30,8 +30,9 @@ logger = logging.getLogger(__name__)
 
 
 def make_sensor_pollers(poll_interval, wiring_config, moisture_threshold,
-                        record_queue, sleep_windows, raspberry_pi_io,
-                        photo_interval, image_path, camera, pump_interval):
+                        pump_amount, record_queue, sleep_windows,
+                        raspberry_pi_io, photo_interval, image_path, camera,
+                        pump_interval):
     logger.info('creating sensor pollers (poll interval=%ds")',
                 poll_interval.total_seconds())
     utc_clock = clock.Clock()
@@ -56,7 +57,7 @@ def make_sensor_pollers(poll_interval, wiring_config, moisture_threshold,
     pump_scheduler = pump.PumpScheduler(local_clock, sleep_windows)
     pump_timer = clock.Timer(utc_clock, pump_interval)
     pump_manager = pump.PumpManager(water_pump, pump_scheduler,
-                                    moisture_threshold, pump_timer)
+                                    moisture_threshold, pump_amount, pump_timer)
 
     make_scheduler_func = lambda: poller.Scheduler(utc_clock, poll_interval)
     photo_make_scheduler_func = lambda: poller.Scheduler(utc_clock, photo_interval)
@@ -143,9 +144,9 @@ def main(args):
     pump_interval = datetime.timedelta(hours=args.pump_interval)
     camera = create_camera(args.camera_rotation)
     pollers = make_sensor_pollers(
-        poll_interval, wiring_config, args.moisture_threshold, record_queue,
-        parsed_windows, raspberry_pi_io, photo_interval, args.image_path,
-        camera, pump_interval)
+        poll_interval, wiring_config, args.moisture_threshold, args.pump_amount,
+        record_queue, parsed_windows, raspberry_pi_io, photo_interval,
+        args.image_path, camera, pump_interval)
     with contextlib.closing(db_store.open_or_create_db(
             args.db_file)) as db_connection:
         record_processor = create_record_processor(db_connection, record_queue)
@@ -167,6 +168,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         prog='GreenPiThumb',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument(
+        '-a',
+        '--pump_amount',
+        type=int,
+        help='Volume of water (in mL) to pump each time the water pump is run',
+        default=200)
     parser.add_argument(
         '-p',
         '--poll_interval',

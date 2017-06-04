@@ -55,7 +55,8 @@ class Pump(object):
 class PumpManager(object):
     """Pump Manager manages the water pump."""
 
-    def __init__(self, pump, pump_scheduler, moisture_threshold, timer):
+    def __init__(self, pump, pump_scheduler, moisture_threshold, pump_amount,
+                 timer):
         """Creates a PumpManager object, which manages a water pump.
 
         Args:
@@ -64,6 +65,7 @@ class PumpManager(object):
                 periods in which the pump can be run.
             moisture_threshold: Soil moisture threshold. If soil moisture is
                 below this value, manager pumps water on pump_if_needed calls.
+            pump_amount: Amount (in mL) to pump every time the water pump runs.
             timer: A timer that counts down until the next forced pump. When
                 this timer expires, the pump manager runs the pump once,
                 regardless of the moisture level.
@@ -71,6 +73,7 @@ class PumpManager(object):
         self._pump = pump
         self._pump_scheduler = pump_scheduler
         self._moisture_threshold = moisture_threshold
+        self._pump_amount = pump_amount
         self._timer = timer
 
     def pump_if_needed(self, moisture):
@@ -83,10 +86,9 @@ class PumpManager(object):
             The amount of water pumped, in mL.
         """
         if self._should_pump(moisture):
-            pump_amount = DEFAULT_PUMP_AMOUNT
-            self._pump.pump_water(pump_amount)
+            self._pump.pump_water(self._pump_amount)
             self._timer.reset()
-            return pump_amount
+            return self._pump_amount
 
         return 0
 
