@@ -20,6 +20,7 @@ import light_sensor
 import pi_io
 import poller
 import pump
+import pump_history
 import record_processor
 import sleep_windows
 import soil_moisture_sensor
@@ -120,7 +121,7 @@ def make_camera_manager(rotation, image_path, light_sensor):
 
 
 def make_pump_manager(moisture_threshold, sleep_windows, raspberry_pi_io,
-                      wiring_config, pump_amount, pump_interval):
+                      wiring_config, pump_amount, db_connection, pump_interval):
     """Creates a pump manager instance.
 
     Args:
@@ -130,6 +131,7 @@ def make_pump_manager(moisture_threshold, sleep_windows, raspberry_pi_io,
         raspberry_pi_io: pi_io instance for the GreenPiThumb.
         wiring_config: Wiring configuration for the GreenPiThumb.
         pump_amount: Amount (in mL) to pump on each run of the pump.
+        db_connection: Database connection to use to retrieve pump history.
         pump_interval: Maximum amount of time between pump runs.
 
     Returns:
@@ -139,6 +141,18 @@ def make_pump_manager(moisture_threshold, sleep_windows, raspberry_pi_io,
                            clock.Clock(), wiring_config.gpio_pins.pump)
     pump_scheduler = pump.PumpScheduler(clock.LocalClock(), sleep_windows)
     pump_timer = clock.Timer(clock.Clock(), pump_interval)
+    last_pump_time = pump_history.last_pump_time(
+        db_store.WateringEventStore(db_connection))
+    if last_pump_time:
+        logger.info('last watering was at %s', last_pump_time)
+        time_remaining = max(
+            datetime.timedelta(seconds=0),
+            (last_pump_time + pump_interval) - clock.Clock().now())
+    else:
+        logger.info('no previous watering found')
+        time_remaining = datetime.timedelta(seconds=0)
+    logger.info('time until until next watering: %s', time_remaining)
+    pump_timer.set_remaining(time_remaining)
     return pump.PumpManager(water_pump, pump_scheduler, moisture_threshold,
                             pump_amount, pump_timer)
 
@@ -215,27 +229,28 @@ def main(args):
     local_light_sensor = make_light_sensor(adc, wiring_config)
     camera_manager = make_camera_manager(args.camera_rotation, args.image_path,
                                          local_light_sensor)
-    pump_manager = make_pump_manager(
-        args.moisture_threshold,
-        sleep_windows.parse(args.sleep_window),
-        raspberry_pi_io,
-        wiring_config,
-        args.pump_amount,
-        datetime.timedelta(hours=args.pump_interval))
-    pollers = make_sensor_pollers(
-        datetime.timedelta(minutes=args.poll_interval),
-        datetime.timedelta(minutes=args.photo_interval),
-        record_queue,
-        local_temperature_sensor,
-        local_humidity_sensor,
-        local_soil_moisture_sensor,
-        local_light_sensor,
-        camera_manager,
-        pump_manager)
 
     with contextlib.closing(db_store.open_or_create_db(
             args.db_file)) as db_connection:
         record_processor = create_record_processor(db_connection, record_queue)
+        pump_manager = make_pump_manager(
+            args.moisture_threshold,
+            sleep_windows.parse(args.sleep_window),
+            raspberry_pi_io,
+            wiring_config,
+            args.pump_amount,
+            db_connection,
+            datetime.timedelta(hours=args.pump_interval))
+        pollers = make_sensor_pollers(
+            datetime.timedelta(minutes=args.poll_interval),
+            datetime.timedelta(minutes=args.photo_interval),
+            record_queue,
+            local_temperature_sensor,
+            local_humidity_sensor,
+            local_soil_moisture_sensor,
+            local_light_sensor,
+            camera_manager,
+            pump_manager)
         try:
             for current_poller in pollers:
                 current_poller.start_polling_async()
@@ -277,7 +292,7 @@ if __name__ == '__main__':
         '--pump_interval',
         type=float,
         help='Max number of hours between plant waterings',
-        default=(3 * 24))
+        default=(7 * 24))
     parser.add_argument(
         '-c',
         '--config_file',
@@ -309,7 +324,7 @@ if __name__ == '__main__':
         type=int,
         help=('Moisture threshold to start pump. The pump will turn on if the '
               'moisture level drops below this level'),
-        default=900)
+        default=0)
     parser.add_argument(
         '--camera_rotation',
         type=int,
