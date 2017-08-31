@@ -127,8 +127,8 @@ class _DbStoreBase(object):
           value: Value to insert for the record.
         """
         timestamp_utc = _timestamp_to_utc(timestamp)
-        self._cursor.execute(sql,
-                             (timestamp_utc.strftime(_TIMESTAMP_FORMAT), value))
+        self._cursor.execute(sql, (timestamp_utc.strftime(_TIMESTAMP_FORMAT),
+                                   value))
         self._connection.commit()
 
     def _do_get(self, sql, record_type):
@@ -144,8 +144,9 @@ class _DbStoreBase(object):
         self._cursor.execute(sql)
         data = []
         for row in self._cursor.fetchall():
-            timestamp = datetime.datetime.strptime(
-                row[0], _TIMESTAMP_FORMAT).replace(tzinfo=pytz.utc)
+            timestamp = datetime.datetime.strptime(row[0],
+                                                   _TIMESTAMP_FORMAT).replace(
+                                                       tzinfo=pytz.utc)
             data.append((timestamp, row[1]))
         typed_data = map(record_type._make, data)
         return typed_data

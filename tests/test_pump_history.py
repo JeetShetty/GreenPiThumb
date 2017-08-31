@@ -23,8 +23,7 @@ class TestPumpHistory(unittest.TestCase):
                 2017, 1, 1, 12, 45, 9, 123456, tzinfo=pytz.utc))
         ]
         self.assertEqual(
-            datetime.datetime(
-                2017, 1, 1, 12, 45, 9, 123456, tzinfo=pytz.utc),
+            datetime.datetime(2017, 1, 1, 12, 45, 9, 123456, tzinfo=pytz.utc),
             pump_history.last_pump_time(self.mock_watering_event_store))
 
     def test_last_pump_time_returns_timestamp_when_db_has_many_events(self):
@@ -37,6 +36,5 @@ class TestPumpHistory(unittest.TestCase):
                 2015, 12, 5, 12, 45, 9, 555555, tzinfo=pytz.utc)),
         ]
         self.assertEqual(
-            datetime.datetime(
-                2017, 3, 2, 0, 15, 59, 987654, tzinfo=pytz.utc),
+            datetime.datetime(2017, 3, 2, 0, 15, 59, 987654, tzinfo=pytz.utc),
             pump_history.last_pump_time(self.mock_watering_event_store))

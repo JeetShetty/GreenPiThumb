@@ -222,16 +222,16 @@ def main(args):
     record_queue = Queue.Queue()
     raspberry_pi_io = pi_io.IO(GPIO)
     adc = make_adc(wiring_config)
-    local_soil_moisture_sensor = make_soil_moisture_sensor(adc, raspberry_pi_io,
-                                                           wiring_config)
+    local_soil_moisture_sensor = make_soil_moisture_sensor(
+        adc, raspberry_pi_io, wiring_config)
     local_temperature_sensor, local_humidity_sensor = make_dht11_sensors(
         wiring_config)
     local_light_sensor = make_light_sensor(adc, wiring_config)
     camera_manager = make_camera_manager(args.camera_rotation, args.image_path,
                                          local_light_sensor)
 
-    with contextlib.closing(db_store.open_or_create_db(
-            args.db_file)) as db_connection:
+    with contextlib.closing(
+            db_store.open_or_create_db(args.db_file)) as db_connection:
         record_processor = create_record_processor(db_connection, record_queue)
         pump_manager = make_pump_manager(
             args.moisture_threshold,

@@ -186,8 +186,8 @@ class PumpSchedulerTest(unittest.TestCase):
         """Running pump should not be allowed."""
         now = datetime.datetime(2016, 7, 23, 10, 51, 9, 928000, tzinfo=pytz.utc)
         self.mock_local_clock.now.return_value = now
-        sleep_windows = [(datetime.time(now.hour, now.minute),
-                          datetime.time(11, 0))]
+        sleep_windows = [(datetime.time(now.hour, now.minute), datetime.time(
+            11, 0))]
         pump_scheduler = pump.PumpScheduler(self.mock_local_clock,
                                             sleep_windows)
         self.assertFalse(pump_scheduler.is_running_pump_allowed())
@@ -196,8 +196,8 @@ class PumpSchedulerTest(unittest.TestCase):
         """Running pump should be allowed."""
         now = datetime.datetime(2016, 7, 23, 10, 51, 9, 928000, tzinfo=pytz.utc)
         self.mock_local_clock.now.return_value = now
-        sleep_windows = [(datetime.time(10, 0), datetime.time(now.hour,
-                                                              now.minute))]
+        sleep_windows = [(datetime.time(10, 0), datetime.time(
+            now.hour, now.minute))]
         pump_scheduler = pump.PumpScheduler(self.mock_local_clock,
                                             sleep_windows)
         self.assertTrue(pump_scheduler.is_running_pump_allowed())

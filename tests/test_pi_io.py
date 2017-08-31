@@ -36,8 +36,9 @@ class IOTest(unittest.TestCase):
         io.turn_pin_off(pin_two)
         io.turn_pin_on(pin_two)
 
-        self.assertEqual(mock_GPIO.setup.call_args_list, [(
-            (pin_one, mock_GPIO.OUT),), ((pin_two, mock_GPIO.OUT),)])
+        self.assertEqual(mock_GPIO.setup.call_args_list,
+                         [((pin_one, mock_GPIO.OUT),), ((pin_two,
+                                                         mock_GPIO.OUT),)])
 
     def test_close(self):
         mock_GPIO = mock.Mock()

@@ -15,8 +15,8 @@ class Clock(object):
             wait_time_seconds: Number of seconds to wait.
         """
         if wait_time_seconds < 0.0:
-            raise ValueError('Wait time cannot be negative: %f' %
-                             wait_time_seconds)
+            raise ValueError(
+                'Wait time cannot be negative: %f' % wait_time_seconds)
         time.sleep(wait_time_seconds)
 
     def now(self):

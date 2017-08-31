@@ -56,6 +56,6 @@ class RecordProcessor(object):
         elif isinstance(record, db_store.WateringEventRecord):
             self._watering_event_store.insert(record)
         else:
-            raise UnsupportedRecordError('Unrecognized record type: %s' %
-                                         str(record))
+            raise UnsupportedRecordError(
+                'Unrecognized record type: %s' % str(record))
         return True

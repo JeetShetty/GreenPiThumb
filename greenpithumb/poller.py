@@ -106,8 +106,8 @@ class Scheduler(object):
         next_poll_time_unix = _round_up_to_multiple(
             self._unix_now(), int(self._poll_interval.total_seconds()))
         if self._last_poll_time and (
-                next_poll_time_unix ==
-                _datetime_to_unix_time(self._last_poll_time)):
+                next_poll_time_unix == _datetime_to_unix_time(
+                    self._last_poll_time)):
             next_poll_time_unix += int(self._poll_interval.total_seconds())
 
         return next_poll_time_unix

@@ -43,8 +43,7 @@ class LightSensor(object):
                 ('Light sensor reading of %i is less than the minimum '
                  'expected value of %i.') % (light, _LIGHT_SENSOR_MIN_VALUE))
 
-        light_as_pct = 100 * (
-            float(light - _LIGHT_SENSOR_MIN_VALUE) /
-            (_LIGHT_SENSOR_MAX_VALUE - _LIGHT_SENSOR_MIN_VALUE))
+        light_as_pct = 100 * (float(light - _LIGHT_SENSOR_MIN_VALUE) / (
+            _LIGHT_SENSOR_MAX_VALUE - _LIGHT_SENSOR_MIN_VALUE))
 
         return light_as_pct

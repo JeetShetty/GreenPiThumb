@@ -100,16 +100,14 @@ class SchedulerTest(unittest.TestCase):
         # time.
         self.assertTrue(scheduler.wait_until_poll_time(timeout=120))
         self.assertEqual(
-            datetime.datetime(
-                2017, 4, 9, 11, 45, 0, tzinfo=pytz.utc),
+            datetime.datetime(2017, 4, 9, 11, 45, 0, tzinfo=pytz.utc),
             scheduler.last_poll_time())
 
         self.mock_clock.now.return_value = datetime.datetime(
             2017, 4, 9, 11, 49, 29, tzinfo=pytz.utc)
         self.assertTrue(scheduler.wait_until_poll_time(timeout=120))
         self.assertEqual(
-            datetime.datetime(
-                2017, 4, 9, 11, 50, 0, tzinfo=pytz.utc),
+            datetime.datetime(2017, 4, 9, 11, 50, 0, tzinfo=pytz.utc),
             scheduler.last_poll_time())
 
 
@@ -162,8 +160,7 @@ class SimplePollerClassesTest(PollerTest):
             self.block_until_poll_completes()
 
         self.assertEqual(
-            db_store.TemperatureRecord(
-                timestamp=TIMESTAMP_A, temperature=21.0),
+            db_store.TemperatureRecord(timestamp=TIMESTAMP_A, temperature=21.0),
             self.record_queue.get(block=True, timeout=TEST_TIMEOUT_SECONDS))
         # Should be no more items in the queue.
         self.assertTrue(self.record_queue.empty())
@@ -180,8 +177,7 @@ class SimplePollerClassesTest(PollerTest):
             self.block_until_poll_completes()
 
         self.assertEqual(
-            db_store.HumidityRecord(
-                timestamp=TIMESTAMP_A, humidity=50.0),
+            db_store.HumidityRecord(timestamp=TIMESTAMP_A, humidity=50.0),
             self.record_queue.get(block=True, timeout=TEST_TIMEOUT_SECONDS))
         # Should be no more items in the queue.
         self.assertTrue(self.record_queue.empty())
@@ -198,8 +194,7 @@ class SimplePollerClassesTest(PollerTest):
             self.block_until_poll_completes()
 
         self.assertEqual(
-            db_store.LightRecord(
-                timestamp=TIMESTAMP_A, light=50.0),
+            db_store.LightRecord(timestamp=TIMESTAMP_A, light=50.0),
             self.record_queue.get(block=True, timeout=TEST_TIMEOUT_SECONDS))
         # Should be no more items in the queue.
         self.assertTrue(self.record_queue.empty())
